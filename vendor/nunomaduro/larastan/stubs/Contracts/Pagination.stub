@@ -1,0 +1,24 @@
+<?php
+
+namespace Illuminate\Contracts\Pagination;
+
+/**
+ * @mixin \Illuminate\Support\Collection
+ * @mixin \Illuminate\Pagination\Paginator
+ */
+interface Paginator
+{}
+
+/**
+ * @mixin \Illuminate\Support\Collection
+ * @mixin \Illuminate\Pagination\LengthAwarePaginator
+ */
+interface LengthAwarePaginator extends Paginator
+{}
+
+/**
+ * @mixin \Illuminate\Support\Collection
+ * @mixin \Illuminate\Pagination\CursorPaginator
+ */
+interface CursorPaginator extends Paginator
+{}
