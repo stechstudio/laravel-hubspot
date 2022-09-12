@@ -11,6 +11,6 @@ class HubSpot extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \STS\HubSpot\CRM::class;
+        return \STS\HubSpot\Sdk::class;
     }
 }

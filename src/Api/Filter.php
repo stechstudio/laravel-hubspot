@@ -17,7 +17,7 @@ class Filter
         $this->property = $property;
         $this->endValue = $endValue;
 
-        if($value === null && !in_array($this->translateOperator($operator), ['HAS_PROPERTY','NOT_HAS_PROPERTY'])) {
+        if ($value === null && !in_array($this->translateOperator($operator), ['HAS_PROPERTY', 'NOT_HAS_PROPERTY'])) {
             $this->operator = "EQ";
             $this->value = $operator;
         } else {
@@ -28,25 +28,25 @@ class Filter
 
     public function toArray()
     {
-        if($this->operator === 'BETWEEN') {
+        if ($this->operator === 'BETWEEN') {
             return [
                 'propertyName' => $this->property,
-                'operator' => $this->operator,
-                'highValue' => $this->cast($this->value),
-                'value' => $this->cast($this->endValue),
+                'operator'     => $this->operator,
+                'highValue'    => $this->cast($this->value),
+                'value'        => $this->cast($this->endValue),
             ];
         }
 
         return array_filter([
             'propertyName' => $this->property,
-            'operator' => $this->operator,
-            'value' => $this->cast($this->value)
+            'operator'     => $this->operator,
+            'value'        => $this->cast($this->value)
         ]);
     }
 
     protected function cast($value = null)
     {
-        if($value instanceof Carbon) {
+        if ($value instanceof Carbon) {
             return $value->timestamp;
         }
 
@@ -56,16 +56,16 @@ class Filter
     protected function translateOperator($operator): string
     {
         return Arr::get([
-            '=' => 'EQ',
-            '!=' => 'NEQ',
-            '<' => 'LT',
-            '<=' => 'LTE',
-            '>' => 'GT',
-            '>=' => 'GTE',
-            'exists' => 'HAS_PROPERTY',
+            '='          => 'EQ',
+            '!='         => 'NEQ',
+            '<'          => 'LT',
+            '<='         => 'LTE',
+            '>'          => 'GT',
+            '>='         => 'GTE',
+            'exists'     => 'HAS_PROPERTY',
             'not exists' => 'NOT_HAS_PROPERTY',
-            'like' => 'CONTAINS_TOKEN',
-            'not like' => 'NOT_CONTAINS_TOKEN'
+            'like'       => 'CONTAINS_TOKEN',
+            'not like'   => 'NOT_CONTAINS_TOKEN'
         ], strtolower($operator), $operator);
     }
 }

@@ -37,12 +37,12 @@ trait HasAssociations
 
     protected function loadAssocationIDs($type): array
     {
-        return $this->builder()->associations($type);
+        return $this->query()->associations($type);
     }
 
     public function getAssociations($type): Collection
     {
-        if($this->associationsLoaded($type)) {
+        if ($this->associationsLoaded($type)) {
             return $this->associations[$type]->get();
         }
 

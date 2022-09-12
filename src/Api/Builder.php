@@ -25,7 +25,8 @@ class Builder
     protected array $with = [];
 
     public function __construct(protected Client $client)
-    {}
+    {
+    }
 
     public function for(Model $object): static
     {
@@ -58,9 +59,9 @@ class Builder
         $response = $this->client()->get(
             $this->object->endpoint('read', ['id' => $id]),
             [
-                'properties' => implode(",", $this->includeProperties()),
+                'properties'   => implode(",", $this->includeProperties()),
                 'associations' => implode(",", $this->includeAssociations()),
-                'idProperty' => $idProperty
+                'idProperty'   => $idProperty
             ]
         )->json();
 
@@ -71,11 +72,11 @@ class Builder
     {
         $ids = array_unique($ids);
 
-        if(count($ids) === 1) {
+        if (count($ids) === 1) {
             return new Collection([$this->find($ids[0], $idProperty)]);
         }
 
-        if(!count($ids)) {
+        if (!count($ids)) {
             return new Collection();
         }
 
@@ -84,11 +85,19 @@ class Builder
             [
                 'properties' => $this->includeProperties(),
                 'idProperty' => $idProperty,
-                'inputs' => array_map(fn($id) => ['id' => $id], $ids)
+                'inputs'     => array_map(fn($id) => ['id' => $id], $ids)
             ]
         )->json();
 
         return Collection::hydrate($response, $this->objectClass);
+    }
+
+    public function update(array $properties): array
+    {
+        return $this->client()->patch(
+            $this->object->endpoint('update', ['id' => $this->object->id]),
+            ['properties' => $properties]
+        )->json();
     }
 
     public function where($property, $condition, $value = null): static
@@ -102,7 +111,7 @@ class Builder
     {
         $this->sort = [
             'propertyName' => $property,
-            'direction' => strtoupper($direction) === 'DESC' ? 'DESCENDING' : 'ASCENDING'
+            'direction'    => strtoupper($direction) === 'DESC' ? 'DESCENDING' : 'ASCENDING'
         ];
 
         return $this;
@@ -134,11 +143,11 @@ class Builder
         return $this->client()->post(
             $this->object->endpoint('search'),
             [
-                'limit' => $limit ?? $this->limit,
-                'after' => $after ?? $this->after ?? null,
-                'query' => $this->query ?? null,
-                'properties' => $this->includeProperties(),
-                'sorts' => isset($this->sort) ? [$this->sort] : null,
+                'limit'        => $limit ?? $this->limit,
+                'after'        => $after ?? $this->after ?? null,
+                'query'        => $this->query ?? null,
+                'properties'   => $this->includeProperties(),
+                'sorts'        => isset($this->sort) ? [$this->sort] : null,
                 'filterGroups' => [[
                     'filters' => array_map(fn($filter) => $filter->toArray(), $this->filters)
                 ]]
@@ -156,17 +165,17 @@ class Builder
 
     public function cursor(): LazyCollection
     {
-        return new LazyCollection(function() {
+        return new LazyCollection(function () {
             $after = 0;
 
             do {
                 $response = $this->fetch($after);
                 $after = Arr::get($response, 'paging.next.after');
 
-                foreach($response['results'] AS $payload) {
+                foreach ($response['results'] as $payload) {
                     yield new $this->objectClass($payload);
                 }
-            } while($after !== null);
+            } while ($after !== null);
         });
     }
 
@@ -181,7 +190,7 @@ class Builder
 
         return new LengthAwarePaginator(
             $results, $results->total(), $perPage, $page, [
-                'path' => Paginator::resolveCurrentPath(),
+                'path'     => Paginator::resolveCurrentPath(),
                 'pageName' => $pageName,
             ]
         );

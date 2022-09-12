@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Illuminate\Support\Traits\Macroable;
 use STS\HubSpot\Api\Concerns\HasAssociations;
+use STS\HubSpot\Facades\HubSpot;
 
 abstract class Model
 {
@@ -19,34 +20,49 @@ abstract class Model
     protected array $properties = [];
 
     protected array $schema = [
-        'id' => 'int',
-        'properties' => 'array',
+        'id'                    => 'int',
+        'properties'            => 'array',
         'propertiesWithHistory' => 'array',
-        'associations' => 'array',
-        'createdAt' => 'datetime',
-        'updatedAt' => 'datetime',
-        'archived' => 'bool',
-        'archivedAt' => 'datetime',
+        'associations'          => 'array',
+        'createdAt'             => 'datetime',
+        'updatedAt'             => 'datetime',
+        'archived'              => 'bool',
+        'archivedAt'            => 'datetime',
     ];
 
     protected array $endpoints = [
-        "read" => "/v3/objects/{type}/{id}",
-        "batchRead" => "/v3/objects/{type}/batch/read",
-        "search" => "/v3/objects/{type}/search",
+        "read"         => "/v3/objects/{type}/{id}",
+        "batchRead"    => "/v3/objects/{type}/batch/read",
+        "update"       => "/v3/objects/{type}/{id}",
+        "search"       => "/v3/objects/{type}/search",
         "associations" => "/v3/objects/{type}/{id}/associations/{association}",
     ];
 
     public function __construct(array $payload = [])
     {
-        $this->payload = $payload;
-        $this->properties = Arr::get($payload, 'properties', []);
+        $this->init($payload);
     }
 
     public static function factory($type): self
     {
-        $class = "STS\\HubSpot\\Crm\\" . Str::ucfirst(Str::singular($type));
+        $class = HubSpot::getModel($type);
 
         return new $class;
+    }
+
+    public function init(array $payload = []): static
+    {
+        $this->payload = $payload;
+        $this->fill(Arr::get($payload, 'properties', []));
+
+        return $this;
+    }
+
+    public function fill(array $properties): static
+    {
+        $this->properties = array_merge($this->properties, $properties);
+
+        return $this;
     }
 
     public function type(): string
@@ -70,26 +86,23 @@ abstract class Model
         );
     }
 
-    public function builder(): Builder
+    public function update(array $properties = []): static
     {
-        return app(Builder::class)->for($this);
+        return $this->fill($properties)->save();
     }
 
-    public function __get($key)
+    public function save(): static
     {
-        if(in_array($key, ['contacts','companies','deals','tickets','notes','calls','emails','meetings','tasks'])) {
-            return $this->getAssociations($key);
-        }
+        return $this->init(
+            $this->query()->update(
+                $this->getDirty()
+            )
+        );
+    }
 
-        if($key === "company") {
-            return $this->getAssociations('companies')->first();
-        }
-
-        if(array_key_exists($key, $this->payload)) {
-            return $this->get($key);
-        }
-
-        return Arr::get($this->properties, $key);
+    public function query(): Builder
+    {
+        return app(Builder::class)->for($this);
     }
 
     public function get($key, $default = null): mixed
@@ -100,15 +113,46 @@ abstract class Model
         );
     }
 
+    public function getDirty(): array
+    {
+        $dirty = [];
+        $original = Arr::get($this->payload, 'properties', []);
+
+        foreach ($this->properties as $key => $value) {
+            if (! array_key_exists($key, $original) || $original[$key] !== $value) {
+                $dirty[$key] = $value;
+            }
+        }
+
+        return $dirty;
+    }
+
     protected function cast($value, $type = "string"): mixed
     {
-        return match($type) {
-            'int' => (int) $value,
+        return match ($type) {
+            'int'      => (int)$value,
             'datetime' => Carbon::parse($value),
-            'array' => (array) $value,
-            'string' => (string) $value,
-            default => $value
+            'array'    => (array)$value,
+            'string'   => (string)$value,
+            default    => $value
         };
+    }
+
+    public function __get($key)
+    {
+        if (HubSpot::isType($key)) {
+            return $this->getAssociations($key);
+        }
+
+        if (HubSpot::isType(Str::plural($key))) {
+            return $this->getAssociations($key)->first();
+        }
+
+        if (array_key_exists($key, $this->payload)) {
+            return $this->get($key);
+        }
+
+        return Arr::get($this->properties, $key);
     }
 
     public function __set($key, $value)
@@ -128,6 +172,6 @@ abstract class Model
 
     public function __call($method, $parameters)
     {
-        return $this->forwardCallTo($this->builder(), $method, $parameters);
+        return $this->forwardCallTo($this->query(), $method, $parameters);
     }
 }

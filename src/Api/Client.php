@@ -7,6 +7,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Traits\ForwardsCalls;
+use STS\HubSpot\Exceptions\NotFoundException;
 use STS\HubSpot\Exceptions\RateLimitException;
 
 /**
@@ -31,9 +32,14 @@ class Client
     {
         return Http::withToken($this->accessToken)
             ->throw(function (Response $response, RequestException $exception) {
-                if($response->json('category') === 'RATE_LIMITS') {
+                if ($response->json('category') === 'RATE_LIMITS') {
                     throw new RateLimitException($response, $exception);
                 }
+                if($response->status() === 404) {
+                    throw new NotFoundException($response, $exception);
+                }
+
+                dd($response->status(), $response->json());
             });
     }
 
@@ -45,11 +51,19 @@ class Client
         );
     }
 
-    public function post(string $uri, $query = null): Response
+    public function post(string $uri, array $data = []): Response
     {
         return $this->http()->post(
             $this->prefix($uri),
-            array_filter($query)
+            array_filter($data)
+        );
+    }
+
+    public function patch(string $uri, array $data = []): Response
+    {
+        return $this->http()->patch(
+            $this->prefix($uri),
+            $data
         );
     }
 
