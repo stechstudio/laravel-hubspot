@@ -30,6 +30,22 @@ class Association
         return $this->collection;
     }
 
+    public function attach($targetId)
+    {
+        if($targetId instanceof Model) {
+            $targetId = $targetId->id;
+        }
+
+        $this->sourceBuilder()->associate(
+            $this->target, $targetId
+        );
+    }
+
+    public function sourceBuilder(): Builder
+    {
+        return app(Builder::class)->for($this->source);
+    }
+
     public function builder(): Builder
     {
         return app(Builder::class)->for($this->target);

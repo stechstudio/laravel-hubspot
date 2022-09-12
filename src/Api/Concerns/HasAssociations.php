@@ -28,6 +28,21 @@ trait HasAssociations
         return $this->associations[$type];
     }
 
+    public function getAssociations($type): Collection
+    {
+        return $this->associations($type)->get();
+    }
+
+    public function associationsLoaded($type): bool
+    {
+        return isset($this->associations) && array_key_exists($type, $this->associations);
+    }
+
+    public function loadAssociations($type): Collection
+    {
+        return $this->associations($type)->load();
+    }
+
     protected function getAssociationIDs($type): array
     {
         $results = in_array($type, $this->preloaded)
@@ -44,20 +59,5 @@ trait HasAssociations
         Arr::set($this->payload, "associations.$type.results", $results);
 
         return $results;
-    }
-
-    public function getAssociations($type): Collection
-    {
-        return $this->associations($type)->get();
-    }
-
-    public function associationsLoaded($type): bool
-    {
-        return isset($this->associations) && array_key_exists($type, $this->associations);
-    }
-
-    public function loadAssociations($type): Collection
-    {
-        return $this->associations($type)->load();
     }
 }

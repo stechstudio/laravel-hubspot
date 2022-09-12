@@ -36,6 +36,7 @@ abstract class Model
         "batchRead"    => "/v3/objects/{type}/batch/read",
         "update"       => "/v3/objects/{type}/{id}",
         "search"       => "/v3/objects/{type}/search",
+        "associate"    => "/v3/objects/{type}/{id}/associations/{association}/{associationId}/{associationType}",
         "associations" => "/v3/objects/{type}/{id}/associations/{association}",
     ];
 
@@ -80,6 +81,10 @@ abstract class Model
     public function endpoint($key, $fill = []): string
     {
         $fill['type'] = $this->type;
+
+        if(Arr::has($this->payload, 'id')) {
+            $fill['id'] = $this->id;
+        }
 
         return str_replace(
             array_map(fn($key) => "{" . $key . "}", array_keys($fill)),

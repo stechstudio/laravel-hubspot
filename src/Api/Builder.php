@@ -6,6 +6,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\LazyCollection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Conditionable;
 
 class Builder
@@ -108,7 +109,7 @@ class Builder
     public function update(array $properties): array
     {
         return $this->client()->patch(
-            $this->object->endpoint('update', ['id' => $this->object->id]),
+            $this->object->endpoint('update'),
             ['properties' => $properties]
         )->json();
     }
@@ -212,6 +213,17 @@ class Builder
     public function count(): int
     {
         return Arr::get($this->get(1, 0, false), 'total', 0);
+    }
+
+    public function associate(Model $target, $targetId)
+    {
+        return $this->client()->put(
+            $this->object->endpoint('associate', [
+                'association' => $target->type(),
+                'associationId' => $targetId,
+                'associationType' => Str::singular($this->object->type()) . "_to_" . Str::singular($target->type())
+            ])
+        )->json();
     }
 
     public function client(): Client

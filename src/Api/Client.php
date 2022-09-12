@@ -67,6 +67,14 @@ class Client
         );
     }
 
+    public function put(string $uri, array $data = []): Response
+    {
+        return $this->http()->put(
+            $this->prefix($uri),
+            $data
+        );
+    }
+
     public function __call($method, $parameters)
     {
         return $this->forwardCallTo($this->http(), $method, $parameters);
