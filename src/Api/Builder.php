@@ -22,7 +22,7 @@ class Builder
     protected string $objectClass;
 
     protected array $properties = [];
-    protected array $associations = [];
+    protected array $with = [];
 
     public function __construct(protected Client $client)
     {}
@@ -46,7 +46,7 @@ class Builder
 
     public function with($associations): static
     {
-        $this->associations = is_array($associations)
+        $this->with = is_array($associations)
             ? $associations
             : func_get_args();
 
@@ -55,16 +55,16 @@ class Builder
 
     public function find($id, $idProperty = null): Model
     {
-        $response = $this->client->get(
+        $response = $this->client()->get(
             $this->object->endpoint('read', ['id' => $id]),
             [
-                'properties' => implode(",", $this->properties()),
-                'associations' => implode(",", $this->associations()),
+                'properties' => implode(",", $this->includeProperties()),
+                'associations' => implode(",", $this->includeAssociations()),
                 'idProperty' => $idProperty
             ]
         )->json();
 
-        return new $this->objectClass($response);
+        return (new $this->objectClass($response))->has($this->includeAssociations());
     }
 
     public function findMany(array $ids, $idProperty = null): Collection
@@ -79,10 +79,10 @@ class Builder
             return new Collection();
         }
 
-        $response = $this->client->post(
+        $response = $this->client()->post(
             $this->object->endpoint('batchRead'),
             [
-                'properties' => $this->properties(),
+                'properties' => $this->includeProperties(),
                 'idProperty' => $idProperty,
                 'inputs' => array_map(fn($id) => ['id' => $id], $ids)
             ]
@@ -131,13 +131,13 @@ class Builder
 
     public function fetch($after = null, $limit = null): array
     {
-        return $this->client->post(
+        return $this->client()->post(
             $this->object->endpoint('search'),
             [
                 'limit' => $limit ?? $this->limit,
                 'after' => $after ?? $this->after ?? null,
                 'query' => $this->query ?? null,
-                'properties' => $this->properties(),
+                'properties' => $this->includeProperties(),
                 'sorts' => isset($this->sort) ? [$this->sort] : null,
                 'filterGroups' => [[
                     'filters' => array_map(fn($filter) => $filter->toArray(), $this->filters)
@@ -192,19 +192,32 @@ class Builder
         return Arr::get($this->get(1, 0, false), 'total', 0);
     }
 
-    protected function properties(): array
+    public function client(): Client
+    {
+        return $this->client;
+    }
+
+    public function associations($association): array
+    {
+        return $this->client()->get(
+            $this->object->endpoint('associations', ['id' => $this->object->id, 'association' => $association])
+        )->json()['results'];
+    }
+
+    protected function includeProperties(): array
     {
         return array_merge(
-            config("hubspot.{$this->object->type()}.include_properties"),
+            config("hubspot.{$this->object->type()}.include_properties", []),
             $this->properties
         );
     }
 
-    protected function associations(): array
+    protected function includeAssociations(): array
     {
         return array_merge(
-            config("hubspot.{$this->object->type()}.include_associations"),
-            $this->associations
+            config("hubspot.{$this->object->type()}.include_associations", []),
+            $this->with
         );
     }
+
 }

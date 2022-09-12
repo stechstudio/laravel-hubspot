@@ -37,7 +37,7 @@ class Client
             });
     }
 
-    public function get(string $uri, $query = null): Response
+    public function get(string $uri, $query = []): Response
     {
         return $this->http()->get(
             $this->prefix($uri),

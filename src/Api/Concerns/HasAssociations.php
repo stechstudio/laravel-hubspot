@@ -9,13 +9,17 @@ use STS\HubSpot\Api\Association;
 trait HasAssociations
 {
     protected array $associations;
+    protected array $preloaded = [];
+
+    public function has(array $preloaded): static
+    {
+        $this->preloaded = $preloaded;
+
+        return $this;
+    }
 
     public function associations($type): Association
     {
-        if(!array_key_exists('associations', $this->payload)) {
-            $this->payload['associations'] = $this->builder()->find($this->id)->get('associations');
-        }
-
         return new Association(
             self::factory($type),
             $this->getAssociationIDs($type)
@@ -24,15 +28,22 @@ trait HasAssociations
 
     protected function getAssociationIDs($type): array
     {
-        return Arr::pluck(
-            Arr::get($this->payload, "associations.$type.results", [])
-        , 'id');
+        $results = array_key_exists($type, $this->preloaded)
+            ? Arr::get($this->payload, "associations.$type.results", [])
+            : $this->loadAssocationIDs($type);
+
+        return Arr::pluck($results, 'id');
+    }
+
+    protected function loadAssocationIDs($type): array
+    {
+        return $this->builder()->associations($type);
     }
 
     public function getAssociations($type): Collection
     {
         if($this->associationsLoaded($type)) {
-            return $this->associations[$type];
+            return $this->associations[$type]->get();
         }
 
         return $this->loadAssociations($type);
@@ -45,8 +56,8 @@ trait HasAssociations
 
     public function loadAssociations($type): Collection
     {
-        $this->associations[$type] = $this->associations($type)->get();
+        $this->associations[$type] = $this->associations($type);
 
-        return $this->associations[$type];
+        return $this->associations[$type]->get();
     }
 }

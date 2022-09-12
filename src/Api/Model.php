@@ -15,11 +15,26 @@ abstract class Model
 
     protected string $type;
 
-    protected array $endpoints = [];
-    protected array $schema = [];
-
     protected array $payload = [];
     protected array $properties = [];
+
+    protected array $schema = [
+        'id' => 'int',
+        'properties' => 'array',
+        'propertiesWithHistory' => 'array',
+        'associations' => 'array',
+        'createdAt' => 'datetime',
+        'updatedAt' => 'datetime',
+        'archived' => 'bool',
+        'archivedAt' => 'datetime',
+    ];
+
+    protected array $endpoints = [
+        "read" => "/v3/objects/{type}/{id}",
+        "batchRead" => "/v3/objects/{type}/batch/read",
+        "search" => "/v3/objects/{type}/search",
+        "associations" => "/v3/objects/{type}/{id}/associations/{association}",
+    ];
 
     public function __construct(array $payload = [])
     {
@@ -39,12 +54,19 @@ abstract class Model
         return $this->type;
     }
 
+    protected function endpoints(): array
+    {
+        return $this->endpoints;
+    }
+
     public function endpoint($key, $fill = []): string
     {
+        $fill['type'] = $this->type;
+
         return str_replace(
             array_map(fn($key) => "{" . $key . "}", array_keys($fill)),
             array_values($fill),
-            $this->endpoints[$key]
+            $this->endpoints()[$key]
         );
     }
 
@@ -55,7 +77,7 @@ abstract class Model
 
     public function __get($key)
     {
-        if(in_array($key, ['contacts','companies','deals','tickets'])) {
+        if(in_array($key, ['contacts','companies','deals','tickets','notes','calls','emails','meetings','tasks'])) {
             return $this->getAssociations($key);
         }
 

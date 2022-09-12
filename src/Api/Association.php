@@ -11,7 +11,7 @@ class Association
 
     public function __construct(
         protected Model $object,
-        protected array $ids
+        protected array $ids = []
     )
     {}
 
