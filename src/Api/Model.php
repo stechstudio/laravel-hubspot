@@ -31,6 +31,7 @@ abstract class Model
     ];
 
     protected array $endpoints = [
+        "create"       => "/v3/objects/{type}",
         "read"         => "/v3/objects/{type}/{id}",
         "batchRead"    => "/v3/objects/{type}/batch/read",
         "update"       => "/v3/objects/{type}/{id}",
@@ -38,16 +39,17 @@ abstract class Model
         "associations" => "/v3/objects/{type}/{id}/associations/{association}",
     ];
 
-    public function __construct(array $payload = [])
+    public function __construct(array $properties = [])
     {
-        $this->init($payload);
+        $this->fill($properties);
     }
 
-    public static function factory($type): self
+    public static function hydrate(array $payload = []): static
     {
-        $class = HubSpot::getModel($type);
+        $instance = new static;
+        $instance->init($payload);
 
-        return new $class;
+        return $instance;
     }
 
     public function init(array $payload = []): static
@@ -86,6 +88,13 @@ abstract class Model
         );
     }
 
+    public static function create(array $properties = []): static
+    {
+        return static::hydrate(
+            static::query()->create($properties)
+        );
+    }
+
     public function update(array $properties = []): static
     {
         return $this->fill($properties)->save();
@@ -94,13 +103,13 @@ abstract class Model
     public function save(): static
     {
         return $this->init(
-            $this->query()->update(
+            $this->builder()->update(
                 $this->getDirty()
             )
         );
     }
 
-    public function query(): Builder
+    public function builder(): Builder
     {
         return app(Builder::class)->for($this);
     }
@@ -145,7 +154,7 @@ abstract class Model
         }
 
         if (HubSpot::isType(Str::plural($key))) {
-            return $this->getAssociations($key)->first();
+            return $this->getAssociations(Str::plural($key))->first();
         }
 
         if (array_key_exists($key, $this->payload)) {
@@ -172,6 +181,10 @@ abstract class Model
 
     public function __call($method, $parameters)
     {
-        return $this->forwardCallTo($this->query(), $method, $parameters);
+        if (HubSpot::isType($method)) {
+            return $this->associations($method);
+        }
+
+        return $this->forwardCallTo($this->builder(), $method, $parameters);
     }
 }

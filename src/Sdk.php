@@ -3,6 +3,7 @@
 namespace STS\HubSpot;
 
 use Illuminate\Support\Str;
+use STS\HubSpot\Api\Model;
 use STS\HubSpot\Crm\Call;
 use STS\HubSpot\Crm\Company;
 use STS\HubSpot\Crm\Contact;
@@ -43,5 +44,12 @@ class Sdk
     public function getModel($type)
     {
         return $this->models[$type];
+    }
+
+    public function factory($type): Model
+    {
+        $class = $this->getModel($type);
+
+        return new $class;
     }
 }

@@ -28,6 +28,11 @@ class Builder
     {
     }
 
+    public function query(): static
+    {
+        return $this;
+    }
+
     public function for(Model $object): static
     {
         $this->object = $object;
@@ -54,6 +59,14 @@ class Builder
         return $this;
     }
 
+    public function create(array $properties): array
+    {
+        return $this->client()->post(
+            $this->object->endpoint('create'),
+            ['properties' => $properties]
+        )->json();
+    }
+
     public function find($id, $idProperty = null): Model
     {
         $response = $this->client()->get(
@@ -65,12 +78,12 @@ class Builder
             ]
         )->json();
 
-        return (new $this->objectClass($response))->has($this->includeAssociations());
+        return ($this->hydrateObject($response))->has($this->includeAssociations());
     }
 
     public function findMany(array $ids, $idProperty = null): Collection
     {
-        $ids = array_unique($ids);
+        $ids = array_filter(array_unique($ids));
 
         if (count($ids) === 1) {
             return new Collection([$this->find($ids[0], $idProperty)]);
@@ -173,7 +186,7 @@ class Builder
                 $after = Arr::get($response, 'paging.next.after');
 
                 foreach ($response['results'] as $payload) {
-                    yield new $this->objectClass($payload);
+                    yield $this->hydrateObject($payload);
                 }
             } while ($after !== null);
         });
@@ -211,6 +224,13 @@ class Builder
         return $this->client()->get(
             $this->object->endpoint('associations', ['id' => $this->object->id, 'association' => $association])
         )->json()['results'];
+    }
+
+    protected function hydrateObject($payload): Model
+    {
+        $class = $this->objectClass;
+
+        return $class::hydrate($payload);
     }
 
     protected function includeProperties(): array

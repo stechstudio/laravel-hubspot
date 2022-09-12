@@ -5,6 +5,7 @@ namespace STS\HubSpot\Api\Concerns;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use STS\HubSpot\Api\Association;
+use STS\HubSpot\Facades\HubSpot;
 
 trait HasAssociations
 {
@@ -20,15 +21,16 @@ trait HasAssociations
 
     public function associations($type): Association
     {
-        return new Association(
-            self::factory($type),
-            $this->getAssociationIDs($type)
-        );
+        if(!$this->associationsLoaded($type)) {
+            $this->associations[$type] = new Association($this, HubSpot::factory($type), $this->getAssociationIDs($type));
+        }
+
+        return $this->associations[$type];
     }
 
     protected function getAssociationIDs($type): array
     {
-        $results = array_key_exists($type, $this->preloaded)
+        $results = in_array($type, $this->preloaded)
             ? Arr::get($this->payload, "associations.$type.results", [])
             : $this->loadAssocationIDs($type);
 
@@ -37,16 +39,16 @@ trait HasAssociations
 
     protected function loadAssocationIDs($type): array
     {
-        return $this->query()->associations($type);
+        $this->preloaded[] = $type;
+        $results = $this->builder()->associations($type);
+        Arr::set($this->payload, "associations.$type.results", $results);
+
+        return $results;
     }
 
     public function getAssociations($type): Collection
     {
-        if ($this->associationsLoaded($type)) {
-            return $this->associations[$type]->get();
-        }
-
-        return $this->loadAssociations($type);
+        return $this->associations($type)->get();
     }
 
     public function associationsLoaded($type): bool
@@ -56,8 +58,6 @@ trait HasAssociations
 
     public function loadAssociations($type): Collection
     {
-        $this->associations[$type] = $this->associations($type);
-
-        return $this->associations[$type]->get();
+        return $this->associations($type)->load();
     }
 }

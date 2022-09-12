@@ -13,7 +13,7 @@ class Collection extends \Illuminate\Support\Collection
     public static function hydrate(array $response, string $className): static
     {
         $instance = new static($response['results']);
-        $instance = $instance->mapInto($className);
+        $instance = $instance->map(fn($payload) => $className::hydrate($payload));
         $instance->response = $response;
         $instance->total = Arr::get($response, 'total', 0);
         $instance->after = Arr::get($response, 'paging.next.after');
