@@ -30,6 +30,16 @@ class Association
         return $this->collection;
     }
 
+    public function create(array $properties = []): Model
+    {
+        $instance = $this->target->create($properties);
+        $this->target = $instance;
+
+        $this->attach($this->target->id);
+
+        return $this->target;
+    }
+
     public function attach($targetId)
     {
         if($targetId instanceof Model) {
