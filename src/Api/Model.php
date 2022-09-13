@@ -35,6 +35,7 @@ abstract class Model
         "read"         => "/v3/objects/{type}/{id}",
         "batchRead"    => "/v3/objects/{type}/batch/read",
         "update"       => "/v3/objects/{type}/{id}",
+        "delete"       => "/v3/objects/{type}/{id}",
         "search"       => "/v3/objects/{type}/search",
         "associate"    => "/v3/objects/{type}/{id}/associations/{association}/{associationId}/{associationType}",
         "associations" => "/v3/objects/{type}/{id}/associations/{association}",

@@ -114,6 +114,13 @@ class Builder
         )->json();
     }
 
+    public function delete(): void
+    {
+        $this->client()->delete(
+            $this->object->endpoint('delete')
+        );
+    }
+
     public function where($property, $condition, $value = null): static
     {
         $this->filters[] = new Filter($property, $condition, $value);
