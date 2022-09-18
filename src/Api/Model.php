@@ -8,16 +8,18 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Illuminate\Support\Traits\Macroable;
 use STS\HubSpot\Api\Concerns\HasAssociations;
+use STS\HubSpot\Api\Concerns\HasPropertyDefinitions;
 use STS\HubSpot\Facades\HubSpot;
 
 abstract class Model
 {
-    use ForwardsCalls, Macroable, HasAssociations;
+    use ForwardsCalls, Macroable, HasAssociations, HasPropertyDefinitions;
 
     protected string $type;
 
     protected array $payload = [];
     protected array $properties = [];
+    protected bool $exists = false;
 
     protected array $schema = [
         'id'                    => 'int',
@@ -39,6 +41,7 @@ abstract class Model
         "search"       => "/v3/objects/{type}/search",
         "associate"    => "/v3/objects/{type}/{id}/associations/{association}/{associationId}/{associationType}",
         "associations" => "/v3/objects/{type}/{id}/associations/{association}",
+        "properties"   => "/v3/properties/{type}"
     ];
 
     public function __construct(array $properties = [])
@@ -54,10 +57,11 @@ abstract class Model
         return $instance;
     }
 
-    public function init(array $payload = []): static
+    protected function init(array $payload = []): static
     {
         $this->payload = $payload;
-        $this->fill(Arr::get($payload, 'properties', []));
+        $this->fill($payload['properties']);
+        $this->exists = true;
 
         return $this;
     }
@@ -94,6 +98,13 @@ abstract class Model
         );
     }
 
+    public function expand(): static
+    {
+        return $this->init(
+            $this->builder()->full()->item($this->id)
+        );
+    }
+
     public static function create(array $properties = []): static
     {
         return static::hydrate(
@@ -106,12 +117,20 @@ abstract class Model
         return $this->fill($properties)->save();
     }
 
+    public function delete(): bool
+    {
+        $this->builder()->delete();
+        $this->exists = false;
+
+        return true;
+    }
+
     public function save(): static
     {
         return $this->init(
-            $this->builder()->update(
-                $this->getDirty()
-            )
+            $this->exists
+                ? $this->builder()->update($this->getDirty())
+                : $this->builder()->create($this->properties)
         );
     }
 
@@ -120,12 +139,21 @@ abstract class Model
         return app(Builder::class)->for($this);
     }
 
-    public function get($key, $default = null): mixed
+    public function getFromPayload($key, $default = null): mixed
     {
         return $this->cast(
             Arr::get($this->payload, $key, $default),
             Arr::get($this->schema, $key, 'string')
         );
+    }
+
+    public function getFromProperties($key): mixed
+    {
+        $value = Arr::get($this->properties, $key);
+
+        return $this->definitions->has($key)
+            ? $this->definitions->get($key)->unserialize($value)
+            : $value;
     }
 
     public function getDirty(): array
@@ -153,6 +181,21 @@ abstract class Model
         };
     }
 
+    public function hasNamedScope($scope)
+    {
+        return method_exists($this, 'scope'.ucfirst($scope));
+    }
+
+    public function callNamedScope($scope, array $parameters = [])
+    {
+        return $this->{'scope'.ucfirst($scope)}(...$parameters);
+    }
+
+    public function toArray(): array
+    {
+        return $this->payload;
+    }
+
     public function __get($key)
     {
         if (HubSpot::isType($key)) {
@@ -163,11 +206,15 @@ abstract class Model
             return $this->getAssociations(Str::plural($key))->first();
         }
 
-        if (array_key_exists($key, $this->payload)) {
-            return $this->get($key);
+        if($key === "definitions") {
+            return $this->builder()->definitions()->get();
         }
 
-        return Arr::get($this->properties, $key);
+        if (array_key_exists($key, $this->payload)) {
+            return $this->getFromPayload($key);
+        }
+
+        return $this->getFromProperties($key);
     }
 
     public function __set($key, $value)

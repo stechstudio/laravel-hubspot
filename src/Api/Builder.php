@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Conditionable;
+use STS\HubSpot\Crm\Property;
 
 class Builder
 {
@@ -51,6 +52,13 @@ class Builder
         return $this;
     }
 
+    public function full(): static
+    {
+        return $this->include(
+            $this->definitions()->get()->keys()->all()
+        );
+    }
+
     public function with($associations): static
     {
         $this->with = is_array($associations)
@@ -68,9 +76,9 @@ class Builder
         )->json();
     }
 
-    public function find($id, $idProperty = null): Model
+    public function item($id, $idProperty = null): array
     {
-        $response = $this->client()->get(
+        return $this->client()->get(
             $this->object->endpoint('read', ['id' => $id]),
             [
                 'properties'   => implode(",", $this->includeProperties()),
@@ -78,8 +86,13 @@ class Builder
                 'idProperty'   => $idProperty
             ]
         )->json();
+    }
 
-        return ($this->hydrateObject($response))->has($this->includeAssociations());
+    public function find($id, $idProperty = null): Model
+    {
+        return ($this->hydrateObject(
+            $this->item($id, $idProperty)
+        ))->has($this->includeAssociations());
     }
 
     public function findMany(array $ids, $idProperty = null): Collection
@@ -114,11 +127,13 @@ class Builder
         )->json();
     }
 
-    public function delete(): void
+    public function delete(): bool
     {
         $this->client()->delete(
             $this->object->endpoint('delete')
         );
+
+        return true;
     }
 
     public function where($property, $condition, $value = null): static
@@ -159,7 +174,7 @@ class Builder
         return $this;
     }
 
-    public function fetch($after = null, $limit = null): array
+    public function items($after = null, $limit = null): array
     {
         return $this->client()->post(
             $this->object->endpoint('search'),
@@ -179,7 +194,7 @@ class Builder
     public function get()
     {
         return Collection::hydrate(
-            $this->fetch(),
+            $this->items(),
             $this->objectClass
         );
     }
@@ -190,7 +205,7 @@ class Builder
             $after = 0;
 
             do {
-                $response = $this->fetch($after);
+                $response = $this->items($after);
                 $after = Arr::get($response, 'paging.next.after');
 
                 foreach ($response['results'] as $payload) {
@@ -205,7 +220,7 @@ class Builder
         $page = $page ?: Paginator::resolveCurrentPage($pageName);
 
         $results = Collection::hydrate(
-            $this->fetch($perPage * $page, $perPage),
+            $this->items($perPage * $page, $perPage),
             $this->objectClass
         );
 
@@ -245,6 +260,21 @@ class Builder
         )->json()['results'];
     }
 
+    public function definitions()
+    {
+        return new PropertyDefinition($this->object, $this);
+    }
+
+    public function properties(): Collection
+    {
+        return Collection::hydrate(
+            $this->client()->get(
+                $this->object->endpoint('properties')
+            )->json(),
+            Property::class
+        );
+    }
+
     protected function hydrateObject($payload): Model
     {
         $class = $this->objectClass;
@@ -268,4 +298,14 @@ class Builder
         );
     }
 
+    public function __call($method, $parameters)
+    {
+        if ($this->object->hasNamedScope($method)) {
+            array_unshift($parameters, $this);
+
+            $response = $this->object->callNamedScope($method, $parameters);
+
+            return $response ?? $this;
+        }
+    }
 }

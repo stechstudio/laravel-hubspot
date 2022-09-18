@@ -9,8 +9,8 @@ use STS\HubSpot\Crm\Company;
 use STS\HubSpot\Crm\Contact;
 use STS\HubSpot\Crm\Deal;
 use STS\HubSpot\Crm\Email;
-use STS\HubSpot\Crm\Feedback;
-use STS\HubSpot\Crm\Items;
+use STS\HubSpot\Crm\FeedbackSubmissions;
+use STS\HubSpot\Crm\LineItems;
 use STS\HubSpot\Crm\Meeting;
 use STS\HubSpot\Crm\Note;
 use STS\HubSpot\Crm\Product;
@@ -24,8 +24,8 @@ class Sdk
         'companies' => Company::class,
         'contacts' => Contact::class,
         'deals' => Deal::class,
-        'feedback_submissions' => Feedback::class,
-        'line_items' => Items::class,
+        'feedback_submissions' => FeedbackSubmissions::class,
+        'line_items' => LineItems::class,
         'products' => Product::class,
         'tickets' => Ticket::class,
         'quotes' => Quote::class,

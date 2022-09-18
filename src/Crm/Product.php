@@ -6,5 +6,5 @@ use STS\HubSpot\Api\Model;
 
 class Product extends Model
 {
-    protected string $type = "product";
+    protected string $type = "products";
 }
