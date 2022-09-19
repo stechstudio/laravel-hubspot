@@ -2,8 +2,8 @@
 return [
     'access_token' => env('HUBSPOT_ACCESS_TOKEN'),
 
-    'objects' => [
-
+    'definitions' => [
+        'cache' => '30 days',
     ],
 
     'contacts' => [

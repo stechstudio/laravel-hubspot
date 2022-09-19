@@ -5,7 +5,7 @@ namespace STS\HubSpot\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \STS\HubSpot\CRM
+ * @mixin \STS\HubSpot\Sdk
  */
 class HubSpot extends Facade
 {

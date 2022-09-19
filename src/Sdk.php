@@ -2,8 +2,7 @@
 
 namespace STS\HubSpot;
 
-use Illuminate\Config\Repository;
-use Illuminate\Support\Str;
+use Carbon\Carbon;
 use STS\HubSpot\Api\Model;
 use STS\HubSpot\Crm\Call;
 use STS\HubSpot\Crm\Company;
@@ -37,7 +36,7 @@ class Sdk
         'tasks' => Task::class
     ];
 
-    public function __construct(protected Repository $config)
+    public function __construct()
     {
     }
 
@@ -56,5 +55,15 @@ class Sdk
         $class = $this->getModel($type);
 
         return new $class;
+    }
+
+    public function shouldCacheDefinitions(): bool
+    {
+        return config('hubspot.definitions.cache') !== false;
+    }
+
+    public function definitionCacheTtl(): Carbon
+    {
+        return now()->add(config('hubspot.definitions.cache'));
     }
 }
