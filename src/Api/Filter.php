@@ -32,8 +32,8 @@ class Filter
             return [
                 'propertyName' => $this->property,
                 'operator'     => $this->operator,
-                'highValue'    => $this->cast($this->value),
-                'value'        => $this->cast($this->endValue),
+                'highValue'    => $this->value[0],
+                'value'        => $this->value[1],
             ];
         }
 

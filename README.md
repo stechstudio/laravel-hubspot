@@ -140,12 +140,126 @@ $contacts = Contact::get();
 
 ### Searching and filtering
 
-When retrieving multiple objects, you will frequently want to filter and search these results.
+When retrieving multiple objects, you will frequently want to filter, search, and order these results.
 You can use a fluent interface to build up a query before retrieving the results. 
 
+#### Adding filters
+
+Use the `where` method to add filters to your query.
+You can use any of the supported operators for the second argument, see here for the full list: [https://developers.hubspot.com/docs/api/crm/search#filter-search-results](https://developers.hubspot.com/docs/api/crm/search#filter-search-results);
+
+This package also provides friendly aliases for common operators `=`, `!=`, `>`, `>=`, `<`, `<=`, `exists`, `not exists`, `like`, and `not like`.
+
 ```php
-Contact::wher
+Contact::where('lastname','!=','Smith')->get();
 ```
+
+You can omit the operator argument and `=` will be used.
+
+```php
+Contact::where('email', 'johndoe@example.com')->get();
+```
+
+For the `BETWEEN` operator, provide the lower and upper bounds as a two-element tuple.
+
+```php
+Contact::where('days_to_close', 'BETWEEN', [30, 60])->get();
+```
+
+> **Note**
+> All filters added are grouped as "AND" filters, and applied together. Optional "OR" grouping is not yet supported.
+
+#### Searching common properties
+
+HubSpot supports searching through certain object properties very easily. See here for details:
+
+[https://developers.hubspot.com/docs/api/crm/search#search-default-searchable-properties](https://developers.hubspot.com/docs/api/crm/search#search-default-searchable-properties)
+
+Specify a search parameter with the `search` method:
+
+```php
+Contact::search('1234')->get();
+```
+
+#### Ordering
+
+You can order the results with any property. 
+
+```php
+Contact::orderBy('lastname')->get();
+```
+
+The default direction is `asc`, you can change this to `desc` if needed.
+
+```php
+Contact::orderBy('days_to_close', 'desc')->get();
+```
+
+### Associations
+
+HubSpot associations are handled similar to Eloquent relationships. 
+
+#### Dynamic properties
+
+You can access associated objects using dynamic properties.
+
+```php
+foreach(Company::find(555)->contacts AS $contact) {
+    echo $contact->email;
+}
+```
+
+#### Association methods
+
+If you need to add additional constraints, use the association method. You can add any of the filtering, searching, or ordering methods described above.
+
+```php
+Company::find(555)->contacts()
+    ->where('days_to_close', 'BETWEEN', [30, 60])
+    ->search('smith')
+    ->get();
+```
+
+#### Eager loading association IDs
+
+Normally, there are three HubSpot API calls to achieve the above result:
+
+1. Fetch the company object
+2. Retrieve all the contact IDs that are associated to this company
+3. Query for contacts that match the IDs
+
+Now we can eliminate the second API call by eager loading the associated contact IDs. 
+This library always eager-loads the IDs for associated companies, contacts, deals, and tickets. It does not eager-load
+IDs for engagements like emails and notes, since those association will tend to be much longer lists.
+
+If you know in advance that you want to, say, retrieve the notes for a contact, you can specify this up front.
+
+```php
+// This will only be two API calls, not three
+Contact::with('notes')->find(123)->notes;
+```
+
+#### Creating associated objects
+
+You can create new records off of the association methods.
+
+```php
+Company::find(555)->contacts()->create([
+    'firstname' => 'Test',
+    'lastname' => 'User',
+    'email' => 'testuser@example.com'
+]);
+```
+
+This will create a new contact, associate it to the company, and return the new contact.
+
+You can also associate existing objects using `attach`. This method accepts and ID or an object instance.
+
+```php
+Company::find(555)->attach(Contact::find(123));
+```
+
+
 
 ## License
 

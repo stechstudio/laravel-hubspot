@@ -234,7 +234,12 @@ class Builder
 
     public function count(): int
     {
-        return Arr::get($this->get(1, 0, false), 'total', 0);
+        return $this->take(1)->get()->total();
+    }
+
+    public function first(): Model|null
+    {
+        return $this->take(1)->get()->first();
     }
 
     public function associate(Model $target, $targetId)

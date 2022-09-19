@@ -4,7 +4,7 @@ return [
 
     'contacts' => [
         'include_properties' => ['firstname','lastname','email'],
-        'include_associations' => ['companies','deals','tickets'],
+        'include_associations' => ['companies','contact', 'deals','tickets'],
     ],
 
     'companies' => [
