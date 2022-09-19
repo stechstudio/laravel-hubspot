@@ -2,6 +2,7 @@
 
 namespace STS\HubSpot;
 
+use Illuminate\Config\Repository;
 use Illuminate\Support\Str;
 use STS\HubSpot\Api\Model;
 use STS\HubSpot\Crm\Call;
@@ -35,6 +36,10 @@ class Sdk
         'notes' => Note::class,
         'tasks' => Task::class
     ];
+
+    public function __construct(protected Repository $config)
+    {
+    }
 
     public function isType($type)
     {
