@@ -41,7 +41,7 @@ abstract class Model
         "search"       => "/v3/objects/{type}/search",
         "associate"    => "/v3/objects/{type}/{id}/associations/{association}/{associationId}/{associationType}",
         "associations" => "/v3/objects/{type}/{id}/associations/{association}",
-        "properties"   => "/v3/properties/{type}"
+        "properties"   => "/v3/properties/{type}",
     ];
 
     public function __construct(array $properties = [])
@@ -143,7 +143,7 @@ abstract class Model
     {
         return $this->cast(
             Arr::get($this->payload, $key, $default),
-            Arr::get($this->schema, $key, 'string')
+            Arr::get($this->schema, $key)
         );
     }
 
@@ -170,7 +170,7 @@ abstract class Model
         return $dirty;
     }
 
-    protected function cast($value, $type = "string"): mixed
+    protected function cast($value, $type = null): mixed
     {
         return match ($type) {
             'int'      => (int)$value,

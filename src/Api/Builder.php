@@ -280,6 +280,16 @@ class Builder
         );
     }
 
+    public function createDefinition(array $properties): Property
+    {
+        return Property::hydrate(
+            $this->client()->post(
+                $this->object->endpoint('properties'),
+                $properties
+            )->json()
+        );
+    }
+
     protected function hydrateObject($payload): Model
     {
         $class = $this->objectClass;

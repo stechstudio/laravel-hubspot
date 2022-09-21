@@ -4,6 +4,7 @@ namespace STS\HubSpot\Api;
 
 use Illuminate\Cache\TaggedCache;
 use Illuminate\Support\Facades\Cache;
+use STS\HubSpot\Crm\Property;
 use STS\HubSpot\Facades\HubSpot;
 
 class PropertyDefinition
@@ -14,9 +15,21 @@ class PropertyDefinition
     {
     }
 
-    public function get(): Collection
+    public function get($key = null): Collection|Property
     {
+        if($key !== null) {
+            return $this->get()->get($key);
+        }
+
         return $this->collection ?? $this->load();
+    }
+
+    public function create(array $properties = []): Property
+    {
+        return tap(
+            $this->builder->createDefinition($properties),
+            fn() => $this->refresh()
+        );
     }
 
     public function load(): Collection

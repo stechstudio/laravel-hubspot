@@ -7,6 +7,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Traits\ForwardsCalls;
+use STS\HubSpot\Exceptions\InvalidRequestException;
 use STS\HubSpot\Exceptions\NotFoundException;
 use STS\HubSpot\Exceptions\RateLimitException;
 
@@ -35,11 +36,13 @@ class Client
                 if ($response->json('category') === 'RATE_LIMITS') {
                     throw new RateLimitException($response, $exception);
                 }
-                if($response->status() === 404) {
-                    throw new NotFoundException($response, $exception);
-                }
 
-                dd($response->status(), $response->json());
+                match($response->status()) {
+                    400 => throw new InvalidRequestException($response->json('message'), 400),
+                    404 => throw new NotFoundException($response, $exception),
+                    409 => throw new InvalidRequestException($response->json('message'), 409),
+                    default => dd($response->status(), $response->json())
+                };
             });
     }
 

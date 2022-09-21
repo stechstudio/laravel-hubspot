@@ -13,6 +13,20 @@ class Property extends Model
     protected string $type = "properties";
     protected $targetType = "contacts";
 
+    protected array $schema = [
+        'name'        => 'string',
+        'label'       => 'string',
+        'type'        => 'string',
+        'fieldType'   => 'string',
+        'description' => 'string',
+        'groupName'   => 'string',
+        'options'     => 'array',
+        'createdAt'   => 'datetime',
+        'updatedAt'   => 'datetime',
+        'archived'    => 'bool',
+        'archivedAt'  => 'datetime',
+    ];
+
     public function scopeLoad(Builder $builder, $targetType)
     {
         return HubSpot::factory($targetType)->properties();
@@ -29,23 +43,23 @@ class Property extends Model
 
     public function unserialize($value): mixed
     {
-        return match($this->payload['type']) {
-            'date' => Carbon::parse($value),
-            'datetime' => Carbon::parse($value),
-            'number' => $value + 0,
+        return match ($this->payload['type']) {
+            'date'        => Carbon::parse($value),
+            'datetime'    => Carbon::parse($value),
+            'number'      => $value + 0,
             'enumeration' => explode(";", $value),
-            default => $value,
+            default       => $value,
         };
     }
 
     public function serialize($value): mixed
     {
-        return match($this->payload['type']) {
-            'date' => $value instanceof Carbon ? $value->toIso8601String() : $value,
-            'dateTime' => $value instanceof Carbon ? $value->format('Y-m-d') : $value,
-            'number' => $value + 0,
+        return match ($this->payload['type']) {
+            'date'        => $value instanceof Carbon ? $value->toIso8601String() : $value,
+            'dateTime'    => $value instanceof Carbon ? $value->format('Y-m-d') : $value,
+            'number'      => $value + 0,
             'enumeration' => implode(';', $value),
-            default => $value,
+            default       => $value,
         };
     }
 }
