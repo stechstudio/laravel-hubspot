@@ -3,6 +3,7 @@
 namespace STS\HubSpot\Api;
 
 use Illuminate\Cache\TaggedCache;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 use STS\HubSpot\Crm\Property;
 use STS\HubSpot\Facades\HubSpot;
@@ -50,9 +51,10 @@ class PropertyDefinition
         return $definitions;
     }
 
-    protected function cache(): TaggedCache
+    protected function cache(): Repository
     {
-        return Cache::tags(['hubspot','hubspot-definitions']);
+        // TODO: consider using tagged cache if available
+        return Cache::driver();
     }
 
     protected function cacheKey(): string
