@@ -127,11 +127,9 @@ abstract class Model
 
     public function save(): static
     {
-        return $this->init(
-            $this->exists
-                ? $this->builder()->update($this->getDirty())
-                : $this->builder()->create($this->properties)
-        );
+        return $this->exists
+            ? $this->fill($this->builder()->update($this->getDirty())['properties'])
+            : $this->init($this->builder()->create($this->properties));
     }
 
     public function builder(): Builder
