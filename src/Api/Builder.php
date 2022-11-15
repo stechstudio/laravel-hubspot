@@ -2,6 +2,7 @@
 
 namespace STS\HubSpot\Api;
 
+use BadMethodCallException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
@@ -322,5 +323,9 @@ class Builder
 
             return $response ?? $this;
         }
+
+        throw new BadMethodCallException(sprintf(
+            'Call to undefined method %s::%s()', static::class, $method
+        ));
     }
 }
