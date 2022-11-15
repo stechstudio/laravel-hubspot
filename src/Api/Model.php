@@ -189,6 +189,17 @@ abstract class Model
         return $this->{'scope'.ucfirst($scope)}(...$parameters);
     }
 
+    public function only($attributes): array
+    {
+        $results = [];
+
+        foreach (is_array($attributes) ? $attributes : func_get_args() as $attribute) {
+            $results[$attribute] = $this->getFromProperties($attribute);
+        }
+
+        return $results;
+    }
+
     public function toArray(): array
     {
         return $this->payload;
