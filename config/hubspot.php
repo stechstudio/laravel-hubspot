@@ -13,12 +13,12 @@ return [
 
     'companies' => [
         'include_properties' => ['domain','name','phone'],
-        'include_associations' => ['companies','contacts','deals','tickets'],
+        'include_associations' => ['contacts','deals','tickets'],
     ],
 
     'deals' => [
         'include_properties' => ['dealname','amount','closedate','pipeline','dealstage'],
-        'include_associations' => ['companies','contacts','deals','tickets'],
+        'include_associations' => ['companies','contacts','tickets'],
     ],
 
     'products' => [
@@ -28,7 +28,7 @@ return [
 
     'tickets' => [
         'include_properties' => ['content','subject'],
-        'include_associations' => ['companies','contacts','deals','tickets'],
+        'include_associations' => ['companies','contacts','deals'],
     ],
 
     'line_items' => [
