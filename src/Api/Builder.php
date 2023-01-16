@@ -24,8 +24,11 @@ class Builder
     protected Model $object;
     protected string $objectClass;
 
+    protected array $defaultProperties = [];
     protected array $properties = [];
-    protected array $with = [];
+
+    protected array $defaultAssociations = [];
+    protected array $associations = [];
 
     public function __construct(protected Client $client)
     {
@@ -41,6 +44,9 @@ class Builder
         $this->object = $object;
         $this->objectClass = get_class($object);
 
+        $this->defaultProperties = config("hubspot.{$this->object->type()}.include_properties", []);
+        $this->defaultAssociations = config("hubspot.{$this->object->type()}.include_associations", []);
+
         return $this;
     }
 
@@ -49,6 +55,26 @@ class Builder
         $this->properties = is_array($properties)
             ? $properties
             : func_get_args();
+
+        return $this;
+    }
+
+    public function includeOnly($properties): static
+    {
+        return $this->clearProperties()->include(...func_get_args());
+    }
+
+    /**
+     * Alias of the above includeOnly() method
+     */
+    public function select($properties): static
+    {
+        return $this->includeOnly(...func_get_args());
+    }
+
+    public function clearProperties(): static
+    {
+        $this->defaultProperties = [];
 
         return $this;
     }
@@ -62,9 +88,21 @@ class Builder
 
     public function with($associations): static
     {
-        $this->with = is_array($associations)
+        $this->associations = is_array($associations)
             ? $associations
             : func_get_args();
+
+        return $this;
+    }
+
+    public function withOnly($associations): static
+    {
+        return $this->clearAssociations()->with(...func_get_args());
+    }
+
+    public function clearAssociations(): static
+    {
+        $this->defaultAssociations = [];
 
         return $this;
     }
@@ -300,18 +338,12 @@ class Builder
 
     protected function includeProperties(): array
     {
-        return array_merge(
-            config("hubspot.{$this->object->type()}.include_properties", []),
-            $this->properties
-        );
+        return array_merge($this->defaultProperties, $this->properties);
     }
 
     protected function includeAssociations(): array
     {
-        return array_merge(
-            config("hubspot.{$this->object->type()}.include_associations", []),
-            $this->with
-        );
+        return array_merge($this->defaultAssociations, $this->associations);
     }
 
     public function __call($method, $parameters)
