@@ -9,6 +9,7 @@ use Illuminate\Support\Traits\ForwardsCalls;
 use Illuminate\Support\Traits\Macroable;
 use STS\HubSpot\Api\Concerns\HasAssociations;
 use STS\HubSpot\Api\Concerns\HasPropertyDefinitions;
+use STS\HubSpot\Crm\Property;
 use STS\HubSpot\Facades\HubSpot;
 
 abstract class Model
@@ -149,7 +150,7 @@ abstract class Model
     {
         $value = Arr::get($this->properties, $key);
 
-        return $this->definitions->has($key)
+        return !is_a($this, Property::class) && $this->definitions->has($key)
             ? $this->definitions->get($key)->unserialize($value)
             : $value;
     }
@@ -207,6 +208,10 @@ abstract class Model
 
     public function __get($key)
     {
+        if (array_key_exists($key, $this->properties)) {
+            return $this->getFromProperties($key);
+        }
+
         if (HubSpot::isType($key)) {
             return $this->getAssociations($key);
         }
@@ -222,8 +227,6 @@ abstract class Model
         if (array_key_exists($key, $this->payload)) {
             return $this->getFromPayload($key);
         }
-
-        return $this->getFromProperties($key);
     }
 
     public function __set($key, $value)
