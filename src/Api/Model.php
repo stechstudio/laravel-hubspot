@@ -252,4 +252,9 @@ abstract class Model
 
         return $this->forwardCallTo($this->builder(), $method, $parameters);
     }
+
+    public static function query(): Builder
+    {
+        return app(Builder::class)->for(new static());
+    }
 }
