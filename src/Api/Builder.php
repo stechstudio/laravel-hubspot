@@ -10,6 +10,7 @@ use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Conditionable;
 use STS\HubSpot\Crm\Property;
+use STS\HubSpot\Exceptions\NotFoundException;
 
 class Builder
 {
@@ -127,11 +128,13 @@ class Builder
         )->json();
     }
 
-    public function find($id, $idProperty = null): Model
+    public function find($id, $idProperty = null): Model|null
     {
-        return ($this->hydrateObject(
-            $this->item($id, $idProperty)
-        ))->has($this->includeAssociations());
+        try {
+           return $this->findOrFail($id, $idProperty);
+        } catch (NotFoundException $e) {
+            return null;
+        }
     }
 
     public function findMany(array $ids, $idProperty = null): Collection
@@ -156,6 +159,13 @@ class Builder
         )->json();
 
         return Collection::hydrate($response, $this->objectClass);
+    }
+
+    public function findOrFail($id, $idProperty = null): Model
+    {
+        return ($this->hydrateObject(
+            $this->item($id, $idProperty)
+        ))->has($this->includeAssociations());
     }
 
     public function update(array $properties): array
