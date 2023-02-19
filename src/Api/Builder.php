@@ -192,6 +192,11 @@ class Builder
         return $this;
     }
 
+    public function whereKey($ids, $idProperty = null): Collection
+    {
+        return $this->findMany(Arr::wrap($ids), $idProperty);
+    }
+
     public function orderBy($property, $direction = 'ASC'): static
     {
         $this->sort = [
