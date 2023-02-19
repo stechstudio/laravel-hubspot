@@ -3,6 +3,7 @@
 namespace STS\HubSpot\Api;
 
 use BadMethodCallException;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
@@ -128,8 +129,12 @@ class Builder
         )->json();
     }
 
-    public function find($id, $idProperty = null): Model|null
+    public function find($id, $idProperty = null): Model|Collection|null
     {
+        if (is_array($id) || $id instanceof Arrayable) {
+            return $this->findMany($id, $idProperty);
+        }
+
         try {
            return $this->findOrFail($id, $idProperty);
         } catch (NotFoundException $e) {
@@ -137,8 +142,11 @@ class Builder
         }
     }
 
-    public function findMany(array $ids, $idProperty = null): Collection
+    public function findMany(array|Arrayable $ids, $idProperty = null): Collection
     {
+        if ($ids instanceof Arrayable) {
+            $ids = $ids->toArray();
+        }
         $ids = array_filter(array_unique($ids));
 
         if (count($ids) === 1) {
