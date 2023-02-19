@@ -176,6 +176,15 @@ class Builder
         ))->has($this->includeAssociations());
     }
 
+    public function findOrNew($id, $idProperty = null)
+    {
+        if (!is_null($model = $this->find($id, $idProperty))) {
+            return $model;
+        }
+
+        return new $this->objectClass();
+    }
+
     public function update(array $properties): array
     {
         return $this->client()->patch(
