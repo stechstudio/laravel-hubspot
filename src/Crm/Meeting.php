@@ -7,9 +7,9 @@ use STS\HubSpot\Api\Collection;
 use STS\HubSpot\Api\Model;
 
 /**
- * @method Association deals();
- * @property-read Contact|null $contact;
- * @property-read Collection $contacts;
+ * @method Association contacts()
+ * @property-read Contact|null $contact
+ * @property-read Collection $contacts
  */
 class Meeting extends Model
 {

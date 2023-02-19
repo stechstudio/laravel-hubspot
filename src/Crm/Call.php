@@ -9,10 +9,10 @@ use STS\HubSpot\Api\Model;
 /**
  * @method Association contacts();
  * @method Association tickets();
- * @property-read Contact|null $contact;
- * @property-read Collection $contacts;
- * @property-read Ticket|null $ticket;
- * @property-read Collection $tickets;
+ * @property-read Contact|null $contact
+ * @property-read Collection $contacts
+ * @property-read Ticket|null $ticket
+ * @property-read Collection $tickets
  */
 class Call extends Model
 {
