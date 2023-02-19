@@ -3,6 +3,7 @@
 namespace STS\HubSpot\Api;
 
 use BadMethodCallException;
+use Closure;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
@@ -183,6 +184,21 @@ class Builder
         }
 
         return new $this->objectClass();
+    }
+
+    public function findOr($id, $idProperty = null, Closure $callback = null)
+    {
+        if ($idProperty instanceof Closure) {
+            $callback = $idProperty;
+
+            $idProperty = null;
+        }
+
+        if (!is_null($model = $this->find($id, $idProperty))) {
+            return $model;
+        }
+
+        return $callback();
     }
 
     public function update(array $properties): array
