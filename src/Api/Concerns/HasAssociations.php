@@ -47,12 +47,12 @@ trait HasAssociations
     {
         $results = in_array($type, $this->preloaded)
             ? Arr::get($this->payload, "associations.$type.results", [])
-            : $this->loadAssocationIDs($type);
+            : $this->loadAssociationIDs($type);
 
         return Arr::pluck($results, 'id');
     }
 
-    protected function loadAssocationIDs($type): array
+    protected function loadAssociationIDs($type): array
     {
         $this->preloaded[] = $type;
         $results = $this->builder()->associations($type);
