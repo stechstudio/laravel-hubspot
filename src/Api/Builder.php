@@ -3,6 +3,8 @@
 namespace STS\HubSpot\Api;
 
 use BadMethodCallException;
+use Closure;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
@@ -10,6 +12,7 @@ use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Conditionable;
 use STS\HubSpot\Crm\Property;
+use STS\HubSpot\Exceptions\NotFoundException;
 
 class Builder
 {
@@ -127,15 +130,24 @@ class Builder
         )->json();
     }
 
-    public function find($id, $idProperty = null): Model
+    public function find($id, $idProperty = null): Model|Collection|null
     {
-        return ($this->hydrateObject(
-            $this->item($id, $idProperty)
-        ))->has($this->includeAssociations());
+        if (is_array($id) || $id instanceof Arrayable) {
+            return $this->findMany($id, $idProperty);
+        }
+
+        try {
+           return $this->findOrFail($id, $idProperty);
+        } catch (NotFoundException $e) {
+            return null;
+        }
     }
 
-    public function findMany(array $ids, $idProperty = null): Collection
+    public function findMany(array|Arrayable $ids, $idProperty = null): Collection
     {
+        if ($ids instanceof Arrayable) {
+            $ids = $ids->toArray();
+        }
         $ids = array_filter(array_unique($ids));
 
         if (count($ids) === 1) {
@@ -156,6 +168,37 @@ class Builder
         )->json();
 
         return Collection::hydrate($response, $this->objectClass);
+    }
+
+    public function findOrFail($id, $idProperty = null): Model
+    {
+        return ($this->hydrateObject(
+            $this->item($id, $idProperty)
+        ))->has($this->includeAssociations());
+    }
+
+    public function findOrNew($id, $idProperty = null)
+    {
+        if (!is_null($model = $this->find($id, $idProperty))) {
+            return $model;
+        }
+
+        return new $this->objectClass();
+    }
+
+    public function findOr($id, $idProperty = null, Closure $callback = null)
+    {
+        if ($idProperty instanceof Closure) {
+            $callback = $idProperty;
+
+            $idProperty = null;
+        }
+
+        if (!is_null($model = $this->find($id, $idProperty))) {
+            return $model;
+        }
+
+        return $callback();
     }
 
     public function update(array $properties): array
@@ -180,6 +223,11 @@ class Builder
         $this->filters[] = new Filter($property, $condition, $value);
 
         return $this;
+    }
+
+    public function whereKey($ids, $idProperty = null): Collection
+    {
+        return $this->findMany(Arr::wrap($ids), $idProperty);
     }
 
     public function orderBy($property, $direction = 'ASC'): static
