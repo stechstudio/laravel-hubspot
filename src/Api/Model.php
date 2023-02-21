@@ -154,6 +154,11 @@ abstract class Model
         return app(Builder::class)->for($this);
     }
 
+    public static function query(): Builder
+    {
+        return (new static())->builder();
+    }
+
     public function getFromPayload($key, $default = null): mixed
     {
         return $this->cast(
@@ -272,10 +277,5 @@ abstract class Model
         }
 
         return $this->forwardCallTo($this->builder(), $method, $parameters);
-    }
-
-    public static function query(): Builder
-    {
-        return app(Builder::class)->for(new static());
     }
 }
