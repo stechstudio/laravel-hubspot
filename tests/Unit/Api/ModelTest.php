@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\Carbon;
+use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Assert;
 use STS\HubSpot\Api\Builder as ApiBuilder;
@@ -258,7 +259,7 @@ test('callNamedScope calls Named Scope', function () {
     $model = new class extends AbstractApiModel {
         public function scopeTestScope(...$parameters)
         {
-            foreach($parameters as &$value) {
+            foreach ($parameters as &$value) {
                 $value++;
             }
 
@@ -266,12 +267,12 @@ test('callNamedScope calls Named Scope', function () {
         }
     };
 
-    expect($model->callNamedScope('TestScope', range(1,5)))
+    expect($model->callNamedScope('TestScope', range(1, 5)))
         ->toBeArray()
-        ->toBe(range(2,6));
+        ->toBe(range(2, 6));
 });
 
-test('__isset returns when property is set', function() {
+test('__isset returns when property is set', function () {
     $model = new class extends AbstractApiModel {
     };
     $propName = sha1(random_bytes(11));
@@ -290,7 +291,7 @@ test('__isset returns when property is set', function() {
         ->toBeTrue();
 });
 
-test('cast casts based on type', function() {
+test('cast casts based on type', function () {
     $model = new class extends AbstractApiModel {
     };
     $castMethod = new ReflectionMethod($model, 'cast');
@@ -301,9 +302,32 @@ test('cast casts based on type', function() {
         ->and($castMethod->invoke($model, 123, 'string'))->toBeString();
 });
 
-test('getFromPayload returns casted properties', function() {
+test('cast invalid datetime throws exception', function () {
+    $model = new class extends AbstractApiModel {
+    };
+    $castMethod = new ReflectionMethod($model, 'cast');
+    $castMethod->invoke($model, 'abc', 'datetime');
+})->throws(InvalidFormatException::class);
+
+test('cast to string throws exception on array', function () {
+    $model = new class extends AbstractApiModel {
+    };
+    $castMethod = new ReflectionMethod($model, 'cast');
+    $castMethod->invoke($model, ['abc'], 'string');
+})->throws(ErrorException::class, 'Array to string conversion');
+
+test('cast to int does weird', function () {
+    $model = new class extends AbstractApiModel {
+    };
+    $castMethod = new ReflectionMethod($model, 'cast');
+    expect($castMethod->invoke($model, ['abc'], 'int'))->toBe(1)
+        ->and($castMethod->invoke($model, '0x16', 'int'))->toBe(0);
+});
+
+test('getFromPayload returns casted properties', function () {
     $model = new class extends AbstractApiModel {
         private string|null $expectedType;
+
         protected function cast($value, $type = null): mixed
         {
             Assert::assertSame($this->expectedType, $type);
@@ -315,7 +339,7 @@ test('getFromPayload returns casted properties', function() {
             if ($type !== null) {
                 $this->schema[$key] = $type;
                 $this->expectedType = $type;
-            } elseif(array_key_exists($key, $this->schema)) {
+            } elseif (array_key_exists($key, $this->schema)) {
                 $this->expectedType = $this->schema[$key];
             }
 
