@@ -17,13 +17,27 @@ beforeEach(function () {
 test('new model fills properties on creation', function () {
     $testValue = ['test_attribute' => sha1(random_bytes(11))];
 
-    $model = new class($testValue) extends AbstractApiModel {
-    };
-    $attributes = new ReflectionProperty($model, 'properties');
+    (new class($testValue) extends AbstractApiModel {
+        public function fill(array $properties): static
+        {
+            Assert::assertArrayHasKey('test_attribute', $properties);
 
-    expect($attributes->getValue($model))
-        ->toBe($testValue);
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2)[1];
+            Assert::assertSame('__construct', $trace['function']);
+            Assert::assertSame(AbstractApiModel::class, $trace['class']);
+            return $this;
+        }
+    });
 });
+
+test('fill does not fill hubspot types', function(string $type) {
+    $baseData = ['test_name' => $this->getName()];
+    $model = (new class extends AbstractApiModel {
+    })->fill([$type => sha1(random_bytes(11)), ...$baseData]);
+
+    $properties = new ReflectionProperty($model, 'properties');
+    expect($properties->getValue($model))->toBe($baseData);
+})->with('SdkTypes-both');
 
 test('setting value on model sets property key to value', function () {
     $model = new class extends AbstractApiModel {
@@ -54,8 +68,7 @@ test('setting hubspot types on model does not set value', function (string $prop
         ->toBeArray()
         ->toBeEmpty();
 })
-    ->with('SdkTypes')
-    ->with('SdkTypes-singular');
+    ->with('SdkTypes-both');
 
 test('builder returns api builder', function () {
     $model = new class extends AbstractApiModel {
@@ -386,5 +399,4 @@ test('delete calls builder delete and sets exists false', function () {
         ->toBeTrue()
         ->and($model->exists)
         ->toBeFalse();
-
 });

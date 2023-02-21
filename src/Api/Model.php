@@ -72,6 +72,16 @@ abstract class Model
 
     public function fill(array $properties): static
     {
+        if (empty($properties)) {
+            return $this;
+        }
+
+        $properties = array_filter(
+            $properties,
+            static fn (string $key): bool => !(HubSpot::isType($key) || HubSpot::isType(Str::plural($key))),
+            ARRAY_FILTER_USE_KEY
+        );
+
         $this->properties = array_merge($this->properties, $properties);
 
         return $this;
