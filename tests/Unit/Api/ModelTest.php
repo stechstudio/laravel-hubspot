@@ -371,3 +371,20 @@ test('getFromPayload returns casted properties', function () {
         $model->setExpected('id', value: (string)$idValue)->getFromPayload('id')
     )->toBe($idValue);
 });
+
+test('delete calls builder delete and sets exists false', function () {
+    $model = new class extends AbstractApiModel {
+        public bool $exists = true;
+    };
+
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder
+        ->expects($this->once())
+        ->method('delete');
+
+    expect($model->delete())
+        ->toBeTrue()
+        ->and($model->exists)
+        ->toBeFalse();
+
+});

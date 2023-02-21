@@ -23,7 +23,7 @@ abstract class Model
 
     protected array $payload = [];
     protected array $properties = [];
-    protected bool $exists = false;
+    public bool $exists = false;
 
     protected array $schema = [
         'id'                    => 'int',
