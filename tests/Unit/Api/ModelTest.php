@@ -198,9 +198,10 @@ test('magic get gets payload if exists', function () {
         ->toBe($this->getName());
 });
 
-test('magic get returns null if nothing found', function() {
-   $model = new class extends AbstractApiModel{};
-   expect($model->__get(sha1(random_bytes(11))))->toBeNull();
+test('magic get returns null if nothing found', function () {
+    $model = new class extends AbstractApiModel {
+    };
+    expect($model->__get(sha1(random_bytes(11))))->toBeNull();
 });
 
 test('type returns internal type', function () {
@@ -211,4 +212,43 @@ test('type returns internal type', function () {
     $property = new ReflectionProperty($model, 'type');
     $property->setValue($model, $type);
     expect($model->type())->toBe($type);
+});
+
+test('endpoints returns internal endpoints', function () {
+    $model = new class extends AbstractApiModel {
+    };
+
+    $property = new ReflectionProperty($model, 'endpoints');
+    $method = new ReflectionMethod($model, 'endpoints');
+
+    expect($method->invoke($model))
+        ->toBe($property->getValue($model));
+});
+
+test('hasNamedScope returns correct value', function () {
+    $model = new class extends AbstractApiModel {
+        public function scopeTest()
+        {
+        }
+    };
+
+    expect($model->hasNamedScope('test'))
+        ->toBeTrue()
+        ->and($model->hasNamedScope($this->getName()))
+        ->toBeFalse();
+});
+
+test('toArray returns payload', function () {
+    $model = new class extends AbstractApiModel {
+    };
+
+    $payload = [
+        'test' => $this->getName(),
+        'rng' => sha1(random_bytes(11)),
+    ];
+
+    $property = new ReflectionProperty($model, 'payload');
+    $property->setValue($model, $payload);
+
+    expect($model->toArray())->toBe($payload);
 });

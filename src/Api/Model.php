@@ -183,7 +183,7 @@ abstract class Model
         };
     }
 
-    public function hasNamedScope($scope)
+    public function hasNamedScope($scope): bool
     {
         return method_exists($this, 'scope'.ucfirst($scope));
     }
