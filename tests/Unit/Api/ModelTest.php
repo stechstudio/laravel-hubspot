@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Assert;
 use STS\HubSpot\Api\Builder as ApiBuilder;
@@ -251,4 +252,82 @@ test('toArray returns payload', function () {
     $property->setValue($model, $payload);
 
     expect($model->toArray())->toBe($payload);
+});
+
+test('callNamedScope calls Named Scope', function () {
+    $model = new class extends AbstractApiModel {
+        public function scopeTestScope(...$parameters)
+        {
+            foreach($parameters as &$value) {
+                $value++;
+            }
+
+            return $parameters;
+        }
+    };
+
+    expect($model->callNamedScope('TestScope', range(1,5)))
+        ->toBeArray()
+        ->toBe(range(2,6));
+});
+
+test('__isset returns when property is set', function() {
+    $model = new class extends AbstractApiModel {
+    };
+    $propName = sha1(random_bytes(11));
+    $propValue = sha1(random_bytes(11));
+
+    expect($model->__isset($propName))
+        ->toBeFalse()
+        ->and(isset($model->$propName))
+        ->toBeFalse();
+
+    $model->$propName = $propValue;
+
+    expect($model->__isset($propName))
+        ->toBeTrue()
+        ->and(isset($model->$propName))
+        ->toBeTrue();
+});
+
+test('cast casts based on type', function() {
+    $model = new class extends AbstractApiModel {
+    };
+    $castMethod = new ReflectionMethod($model, 'cast');
+
+    expect($castMethod->invoke($model, '123', 'int'))->toBeInt()
+        ->and($castMethod->invoke($model, '2023-02-23', 'datetime'))->toBeInstanceOf(Carbon::class)
+        ->and($castMethod->invoke($model, '123', 'array'))->toBeArray()
+        ->and($castMethod->invoke($model, 123, 'string'))->toBeString();
+});
+
+test('getFromPayload returns casted properties', function() {
+    $model = new class extends AbstractApiModel {
+        private string|null $expectedType;
+        protected function cast($value, $type = null): mixed
+        {
+            Assert::assertSame($this->expectedType, $type);
+            return parent::cast($value, $type);
+        }
+
+        public function setExpected($key, $value = null, $type = null)
+        {
+            if ($type !== null) {
+                $this->schema[$key] = $type;
+                $this->expectedType = $type;
+            } elseif(array_key_exists($key, $this->schema)) {
+                $this->expectedType = $this->schema[$key];
+            }
+
+            if ($value !== null) {
+                $this->payload[$key] = $value;
+            }
+            return $this;
+        }
+    };
+
+    $idValue = random_int(11, 99);
+    expect(
+        $model->setExpected('id', value: (string)$idValue)->getFromPayload('id')
+    )->toBe($idValue);
 });
