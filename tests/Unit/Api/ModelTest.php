@@ -30,6 +30,16 @@ test('new model fills properties on creation', function () {
     });
 });
 
+test('new model does not call fill when empty params', function () {
+    new class([]) extends AbstractApiModel {
+        public function fill(array $properties): static
+        {
+            Assert::fail('fill was called from __construct when empty params');
+        }
+    };
+    $this->addToAssertionCount(1);
+});
+
 test('fill does not fill hubspot types', function(string $type) {
     $baseData = ['test_name' => $this->getName()];
     $model = (new class extends AbstractApiModel {
@@ -38,6 +48,34 @@ test('fill does not fill hubspot types', function(string $type) {
     $properties = new ReflectionProperty($model, 'properties');
     expect($properties->getValue($model))->toBe($baseData);
 })->with('SdkTypes-both');
+
+test('update calls fill & save', function () {
+    $testValue = ['test_attribute' => sha1(random_bytes(11))];
+
+    (new class extends AbstractApiModel {
+        public function fill(array $properties): static
+        {
+            Assert::assertArrayHasKey('test_attribute', $properties);
+            $this->assertBacktraceIsUpdate();
+            return $this;
+        }
+
+        public function save(): static
+        {
+            $this->assertBacktraceIsUpdate();
+            return $this;
+        }
+
+        protected function assertBacktraceIsUpdate(): void
+        {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,3)[2];
+            dump($trace);
+            Assert::assertSame('update', $trace['function']);
+            Assert::assertSame(AbstractApiModel::class, $trace['class']);
+        }
+
+    })->update($testValue);
+});
 
 test('setting value on model sets property key to value', function () {
     $model = new class extends AbstractApiModel {

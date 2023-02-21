@@ -50,6 +50,9 @@ abstract class Model
 
     public function __construct(array $properties = [])
     {
+        if (empty($properties)) {
+            return;
+        }
         $this->fill($properties);
     }
 
