@@ -211,8 +211,16 @@ abstract class Model
 
     public function __get($key)
     {
+        if($key === "definitions") {
+            return $this->builder()->definitions()->get();
+        }
+
         if (array_key_exists($key, $this->properties)) {
             return $this->getFromProperties($key);
+        }
+
+        if (array_key_exists($key, $this->payload)) {
+            return $this->getFromPayload($key);
         }
 
         if (HubSpot::isType($key)) {
@@ -221,14 +229,6 @@ abstract class Model
 
         if (HubSpot::isType(Str::plural($key))) {
             return $this->getAssociations(Str::plural($key))->first();
-        }
-
-        if($key === "definitions") {
-            return $this->builder()->definitions()->get();
-        }
-
-        if (array_key_exists($key, $this->payload)) {
-            return $this->getFromPayload($key);
         }
 
         return null;
