@@ -236,6 +236,9 @@ abstract class Model
 
     public function __set($key, $value)
     {
+        if (HubSpot::isType($key) || HubSpot::isType(Str::plural($key))) {
+            return;
+        }
         $this->properties[$key] = $value;
     }
 

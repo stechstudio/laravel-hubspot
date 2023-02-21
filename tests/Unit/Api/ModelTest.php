@@ -41,6 +41,22 @@ test('setting value on model sets property key to value', function () {
         ->toHaveKey($propName, $propValue);
 });
 
+test('setting hubspot types on model does not set value', function (string $propName) {
+    $model = new class extends AbstractApiModel {
+    };
+    $attributes = new ReflectionProperty($model, 'properties');
+
+    $propValue = sha1(random_bytes(11));
+
+    $model->$propName = $propValue;
+
+    expect($attributes->getValue($model))
+        ->toBeArray()
+        ->toBeEmpty();
+})
+    ->with('SdkTypes')
+    ->with('SdkTypes-singular');
+
 test('builder returns api builder', function () {
     $model = new class extends AbstractApiModel {
     };
