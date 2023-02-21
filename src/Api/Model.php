@@ -12,6 +12,9 @@ use STS\HubSpot\Api\Concerns\HasPropertyDefinitions;
 use STS\HubSpot\Crm\Property;
 use STS\HubSpot\Facades\HubSpot;
 
+/**
+ * @property-read Collection $definitions
+ */
 abstract class Model
 {
     use ForwardsCalls, Macroable, HasAssociations, HasPropertyDefinitions;
@@ -227,6 +230,8 @@ abstract class Model
         if (array_key_exists($key, $this->payload)) {
             return $this->getFromPayload($key);
         }
+
+        return null;
     }
 
     public function __set($key, $value)
