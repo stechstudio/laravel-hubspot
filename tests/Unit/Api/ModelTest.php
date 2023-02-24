@@ -4,6 +4,7 @@ use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Assert;
+use STS\HubSpot\Api\Association;
 use STS\HubSpot\Api\Builder as ApiBuilder;
 use STS\HubSpot\Api\Collection;
 use STS\HubSpot\Api\Model as AbstractApiModel;
@@ -22,7 +23,7 @@ test('new model fills properties on creation', function () {
         {
             Assert::assertArrayHasKey('test_attribute', $properties);
 
-            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2)[1];
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1];
             Assert::assertSame('__construct', $trace['function']);
             Assert::assertSame(AbstractApiModel::class, $trace['class']);
             return $this;
@@ -40,7 +41,7 @@ test('new model does not call fill when empty params', function () {
     $this->addToAssertionCount(1);
 });
 
-test('fill does not fill hubspot types', function(string $type) {
+test('fill does not fill hubspot types', function (string $type) {
     $baseData = ['test_name' => $this->getName()];
     $model = (new class extends AbstractApiModel {
     })->fill([$type => sha1(random_bytes(11)), ...$baseData]);
@@ -68,7 +69,7 @@ test('update calls fill & save', function () {
 
         protected function assertBacktraceIsUpdate(): void
         {
-            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,3)[2];
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)[2];
             dump($trace);
             Assert::assertSame('update', $trace['function']);
             Assert::assertSame(AbstractApiModel::class, $trace['class']);
@@ -437,4 +438,39 @@ test('delete calls builder delete and sets exists false', function () {
         ->toBeTrue()
         ->and($model->exists)
         ->toBeFalse();
+});
+
+test('method calls are forwarded to associations for hubspot types', function (string $type) {
+    $model = (new class extends AbstractApiModel {
+
+        private string $expectedType;
+        public function associations($type): Association
+        {
+            Assert::assertSame($this->expectedType, $type);
+            return parent::associations($type);
+        }
+
+        public function setExpected(string $expectedType): self
+        {
+            $this->expectedType = $expectedType;
+            return $this;
+        }
+
+    })->setExpected($type);
+
+    $model->$type();
+})->with('SdkTypes');
+
+test('static calls get forwarded', function() {
+    $model = new class extends AbstractApiModel {
+        protected function mylittletestfunction(string $testMessage)
+        {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1];
+            Assert::assertSame('__callStatic', $trace['function']);
+            Assert::assertSame(AbstractApiModel::class, $trace['class']);
+            Assert::assertSame('this is a test', $testMessage);
+        }
+    };
+
+    $model::mylittletestfunction('this is a test');
 });
