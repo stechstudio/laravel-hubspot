@@ -95,23 +95,18 @@ abstract class Model
         return $this->type;
     }
 
-    protected function endpoints(): array
-    {
-        return $this->endpoints;
-    }
-
     public function endpoint($key, $fill = []): string
     {
         $fill['type'] = $this->type;
 
         if(Arr::has($this->payload, 'id')) {
-            $fill['id'] = $this->id;
+            $fill['id'] = $this->getFromPayload('id');
         }
 
         return str_replace(
             array_map(fn($key) => "{" . $key . "}", array_keys($fill)),
             array_values($fill),
-            $this->endpoints()[$key]
+            $this->endpoints[$key]
         );
     }
 
