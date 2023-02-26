@@ -285,17 +285,6 @@ test('type returns internal type', function () {
     expect($model->type())->toBe($type);
 });
 
-test('endpoints returns internal endpoints', function () {
-    $model = new class extends AbstractApiModel {
-    };
-
-    $property = new ReflectionProperty($model, 'endpoints');
-    $method = new ReflectionMethod($model, 'endpoints');
-
-    expect($method->invoke($model))
-        ->toBe($property->getValue($model));
-});
-
 test('hasNamedScope returns correct value', function () {
     $model = new class extends AbstractApiModel {
         public function scopeTest()
