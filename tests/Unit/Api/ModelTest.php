@@ -445,6 +445,7 @@ test('method calls are forwarded to associations for hubspot types', function (s
     $model = (new class extends AbstractApiModel {
 
         private string $expectedType;
+
         public function associations($type): Association
         {
             Assert::assertSame($this->expectedType, $type);
@@ -462,7 +463,7 @@ test('method calls are forwarded to associations for hubspot types', function (s
     $model->$type();
 })->with('SdkTypes');
 
-test('static calls get forwarded', function() {
+test('static calls get forwarded', function () {
     $model = new class extends AbstractApiModel {
         protected function mylittletestfunction(string $testMessage)
         {
@@ -476,7 +477,7 @@ test('static calls get forwarded', function() {
     $model::mylittletestfunction('this is a test');
 });
 
-test('only calls getFromProperties for each item passed', function() {
+test('only calls getFromProperties for each item passed', function () {
     $model = new class extends AbstractApiModel {
         public const TESTVALUES = ['a' => 1, 'yes' => 2, 'b' => 3, 'no' => 4, 'k' => 5];
 
@@ -491,7 +492,7 @@ test('only calls getFromProperties for each item passed', function() {
     $this->assertSame($model::TESTVALUES, $model->only(...array_keys($model::TESTVALUES)));
 });
 
-test('getFromProperties returns item when instance of Property', function() {
+test('getFromProperties returns item when instance of Property', function () {
     $model = new class extends Property {
     };
 
@@ -502,7 +503,7 @@ test('getFromProperties returns item when instance of Property', function() {
     $this->assertSame($model->testProperty, $model->getFromProperties('testProperty'));
 });
 
-test('getFromProperties returns item when definitions is missing key ', function() {
+test('getFromProperties returns item when definitions is missing key ', function () {
     $model = new class extends AbstractApiModel {
     };
 
@@ -522,7 +523,7 @@ test('getFromProperties returns item when definitions is missing key ', function
     $this->assertSame($sha1, $model->getFromProperties('testProperty'));
 });
 
-test('getFromProperties returns unserialized definition when definitions is matches key', function() {
+test('getFromProperties returns unserialized definition when definitions is matches key', function () {
     $model = new class extends AbstractApiModel {
     };
 
@@ -552,4 +553,40 @@ test('getFromProperties returns unserialized definition when definitions is matc
         ->willReturn($sha2);
 
     $this->assertSame($sha2, $model->getFromProperties('testProperty'));
+});
+
+test('endpoint replaces type with model property', function () {
+    $model = new class extends AbstractApiModel {
+        protected string $type = 'testing';
+        protected array $endpoints = ['test_abc' => '/test/{type}/testing'];
+    };
+    $this->assertSame('/test/testing/testing', $model->endpoint('test_abc'));
+    $this->assertSame('/test/testing/testing', $model->endpoint('test_abc', ['type' => 'other type']));
+});
+
+test('endpoint replaces id with payload id', function () {
+    $model = new class extends AbstractApiModel {
+        protected string $type = 'testing';
+        protected array $payload = ['id' => '123'];
+        protected array $endpoints = ['test_abc' => '/test/{type}/{id}'];
+    };
+    $this->assertSame('/test/testing/123', $model->endpoint('test_abc'));
+    $this->assertSame('/test/testing/123', $model->endpoint('test_abc', ['id' => '222']));
+});
+
+test('endpoint replaces endpoint keys with passed fill', function () {
+    $model = new class extends AbstractApiModel {
+        protected string $type = 'testing';
+        protected array $endpoints = ['test_abc' => '/test/{type}/{param1}/param2/{param3}'];
+    };
+    $time = now()->toDateTimeString();
+    $endpoint = $model->endpoint(
+        'test_abc',
+        [
+            'param1' => 'eter1',
+            'param2' => 'ignored',
+            'param3' => $time
+        ]
+    );
+    $this->assertSame('/test/testing/eter1/param2/' . $time, $endpoint);
 });
