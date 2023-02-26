@@ -171,16 +171,6 @@ abstract class Model
     {
         $value = Arr::get($this->properties, $key);
 
-        if (is_a($this, Property::class)) {
-            return $value;
-        }
-
-        if ($this->definitions->has($key)) {
-            return $this->definitions->get($key)->unserialize($value);
-        }
-
-        return $value;
-
         return !is_a($this, Property::class) && $this->definitions->has($key)
             ? $this->definitions->get($key)->unserialize($value)
             : $value;
