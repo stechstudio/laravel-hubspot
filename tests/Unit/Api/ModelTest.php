@@ -579,3 +579,19 @@ test('endpoint replaces endpoint keys with passed fill', function () {
     );
     $this->assertSame('/test/testing/eter1/param2/' . $time, $endpoint);
 });
+
+test('getDirty returns properties missing from payload', function() {
+    $model = new class extends AbstractApiModel {
+        protected array $payload = ['properties' => []];
+        protected array $properties = ['test' => 123];
+    };
+    $this->assertSame(['test' => 123], $model->getDirty());
+});
+
+test('getDirty returns properties changed from payload', function() {
+    $model = new class extends AbstractApiModel {
+        protected array $payload = ['properties' => ['test' => 123]];
+        protected array $properties = ['test' => 321];
+    };
+    $this->assertSame(['test' => 321], $model->getDirty());
+});
