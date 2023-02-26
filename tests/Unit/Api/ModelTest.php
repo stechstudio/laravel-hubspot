@@ -9,6 +9,7 @@ use STS\HubSpot\Api\Builder as ApiBuilder;
 use STS\HubSpot\Api\Collection;
 use STS\HubSpot\Api\Model as AbstractApiModel;
 use STS\HubSpot\Api\PropertyDefinition;
+use STS\HubSpot\Crm\Property;
 
 beforeEach(function () {
     $this->builder = $this->createMock(ApiBuilder::class);
@@ -473,4 +474,82 @@ test('static calls get forwarded', function() {
     };
 
     $model::mylittletestfunction('this is a test');
+});
+
+test('only calls getFromProperties for each item passed', function() {
+    $model = new class extends AbstractApiModel {
+        public const TESTVALUES = ['a' => 1, 'yes' => 2, 'b' => 3, 'no' => 4, 'k' => 5];
+
+        public function getFromProperties($key): mixed
+        {
+            Assert::assertArrayHasKey($key, static::TESTVALUES);
+            return static::TESTVALUES[$key];
+        }
+    };
+
+    $this->assertSame($model::TESTVALUES, $model->only(array_keys($model::TESTVALUES)));
+    $this->assertSame($model::TESTVALUES, $model->only(...array_keys($model::TESTVALUES)));
+});
+
+test('getFromProperties returns item when instance of Property', function() {
+    $model = new class extends Property {
+    };
+
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder->expects($this->never())->method('definitions');
+
+    $model->testProperty = sha1(random_bytes(11));
+    $this->assertSame($model->testProperty, $model->getFromProperties('testProperty'));
+});
+
+test('getFromProperties returns item when definitions is missing key ', function() {
+    $model = new class extends AbstractApiModel {
+    };
+
+    $propertyDefinition = $this->createMock(PropertyDefinition::class);
+    $collectionMock = $this->createMock(Collection::class);
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder->method('definitions')->willReturn($propertyDefinition);
+    $propertyDefinition->method('get')->willReturn($collectionMock);
+    $collectionMock
+        ->expects($this->once())
+        ->method('has')
+        ->with('testProperty')
+        ->willReturn(false);
+
+    $sha1 = sha1(random_bytes(11));
+    $model->testProperty = $sha1;
+    $this->assertSame($sha1, $model->getFromProperties('testProperty'));
+});
+
+test('getFromProperties returns unserialized definition when definitions is matches key', function() {
+    $model = new class extends AbstractApiModel {
+    };
+
+    $sha1 = sha1(random_bytes(11));
+    $sha2 = sha1(random_bytes(11));
+    $model->testProperty = $sha1;
+
+    $propertyDefinition = $this->createMock(PropertyDefinition::class);
+    $collectionMock = $this->createMock(Collection::class);
+    $mockProperty = $this->createMock(Property::class);
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder->method('definitions')->willReturn($propertyDefinition);
+    $propertyDefinition->method('get')->willReturn($collectionMock);
+    $collectionMock
+        ->expects($this->once())
+        ->method('has')
+        ->with('testProperty')
+        ->willReturn(true);
+    $collectionMock->expects($this->once())
+        ->method('get')
+        ->with('testProperty')
+        ->willReturn($mockProperty);
+
+    $mockProperty->expects($this->once())
+        ->method('unserialize')
+        ->with($sha1)
+        ->willReturn($sha2);
+
+    $this->assertSame($sha2, $model->getFromProperties('testProperty'));
 });
