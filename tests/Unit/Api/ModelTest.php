@@ -580,7 +580,7 @@ test('endpoint replaces endpoint keys with passed fill', function () {
     $this->assertSame('/test/testing/eter1/param2/' . $time, $endpoint);
 });
 
-test('getDirty returns properties missing from payload', function() {
+test('getDirty returns properties missing from payload', function () {
     $model = new class extends AbstractApiModel {
         protected array $payload = ['properties' => []];
         protected array $properties = ['test' => 123];
@@ -588,10 +588,35 @@ test('getDirty returns properties missing from payload', function() {
     $this->assertSame(['test' => 123], $model->getDirty());
 });
 
-test('getDirty returns properties changed from payload', function() {
+test('getDirty returns properties changed from payload', function () {
     $model = new class extends AbstractApiModel {
         protected array $payload = ['properties' => ['test' => 123]];
         protected array $properties = ['test' => 321];
     };
     $this->assertSame(['test' => 321], $model->getDirty());
+});
+
+test('hydrate calls init on new instance', function () {
+    $model = new class extends AbstractApiModel {
+
+        public static array $expectedPayload = [];
+
+        protected function init(array $payload = []): static
+        {
+            Assert::assertSame(self::$expectedPayload, $payload);
+            return $this;
+        }
+    };
+    $model::$expectedPayload = ['test' => $this->getName(), 'when' => now()->toDateTimeString()];
+
+    $secondModel = $model::hydrate($model::$expectedPayload);
+    $this->assertInstanceOf(AbstractApiModel::class, $secondModel);
+});
+
+test('init calls fill, set exists and sets payload', function () {
+    $model = new class extends AbstractApiModel {
+    };
+    $initMethod = new ReflectionMethod($model, 'init');
+    $payload = ['properties' => []];
+    $result = $initMethod->invoke($model, $payload);
 });
