@@ -676,3 +676,92 @@ test('expand calls through as expected', function () {
     $this->builder->expects($this->once())->method('item')->with(123)->willReturn($model::$expectedPayload);
     $model->expand();
 });
+
+test('create calls hydrate with builder create properties', function () {
+    $model = new class extends AbstractApiModel {
+        public static array $expectedPayload = [];
+
+        public static function hydrate(array $payload = []): static
+        {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1];
+            Assert::assertSame('create', $trace['function']);
+            Assert::assertSame('::', $trace['type']);
+            Assert::assertSame(AbstractApiModel::class, $trace['class']);
+            return parent::hydrate($payload);
+        }
+    };
+    $properties = [
+        'test' => $this->getName(),
+        'when' => now()->toDateTimeString()
+    ];
+    $model::$expectedPayload = [
+        'id' => random_int(100, 999),
+        'properties' => $properties
+    ];
+
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder->expects($this->once())->method('create')->with($properties)->willReturn($model::$expectedPayload);
+
+    $model::create($properties);
+});
+
+test('save when exists is true', function () {
+    $model = new class extends AbstractApiModel {
+        public bool $exists = true;
+        public static array $expectedPayload = [];
+
+        public function fill(array $properties): static
+        {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1];
+            Assert::assertSame('save', $trace['function']);
+            Assert::assertSame(AbstractApiModel::class, $trace['class']);
+            return parent::fill($properties);
+        }
+    };
+
+    $properties = [
+        'test' => $this->getName(),
+        'when' => now()->toDateTimeString()
+    ];
+    $model::$expectedPayload = [
+        'id' => random_int(100, 999),
+        'properties' => $properties
+    ];
+
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder->expects($this->once())->method('update')->with([])->willReturn($model::$expectedPayload);
+    $this->builder->expects($this->never())->method('create')->withAnyParameters();
+
+    $model->save();
+});
+
+test('save when exists is false', function () {
+    $model = new class extends AbstractApiModel {
+        public bool $exists = false;
+        public static array $expectedPayload = [];
+
+
+        protected function init(array $payload = []): static
+        {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1];
+            Assert::assertSame('save', $trace['function']);
+            Assert::assertSame(AbstractApiModel::class, $trace['class']);
+            return parent::init($payload);
+        }
+    };
+
+    $properties = [
+        'test' => $this->getName(),
+        'when' => now()->toDateTimeString()
+    ];
+    $model::$expectedPayload = [
+        'id' => random_int(100, 999),
+        'properties' => $properties
+    ];
+    $model->fill($properties);
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder->expects($this->never())->method('update')->withAnyParameters();
+    $this->builder->expects($this->once())->method('create')->with($properties)->willReturn($model::$expectedPayload);
+
+    $model->save();
+});
