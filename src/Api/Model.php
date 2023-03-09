@@ -12,6 +12,9 @@ use STS\HubSpot\Api\Concerns\HasPropertyDefinitions;
 use STS\HubSpot\Crm\Property;
 use STS\HubSpot\Facades\HubSpot;
 
+/**
+ * @property-read Collection $definitions
+ */
 abstract class Model
 {
     use ForwardsCalls, Macroable, HasAssociations, HasPropertyDefinitions;
@@ -20,7 +23,7 @@ abstract class Model
 
     protected array $payload = [];
     protected array $properties = [];
-    protected bool $exists = false;
+    public bool $exists = false;
 
     protected array $schema = [
         'id'                    => 'int',
@@ -47,6 +50,9 @@ abstract class Model
 
     public function __construct(array $properties = [])
     {
+        if (empty($properties)) {
+            return;
+        }
         $this->fill($properties);
     }
 
@@ -69,6 +75,16 @@ abstract class Model
 
     public function fill(array $properties): static
     {
+        if (empty($properties)) {
+            return $this;
+        }
+
+        $properties = array_filter(
+            $properties,
+            static fn (string $key): bool => !(HubSpot::isType($key) || HubSpot::isType(Str::plural($key))),
+            ARRAY_FILTER_USE_KEY
+        );
+
         $this->properties = array_merge($this->properties, $properties);
 
         return $this;
@@ -79,23 +95,18 @@ abstract class Model
         return $this->type;
     }
 
-    protected function endpoints(): array
-    {
-        return $this->endpoints;
-    }
-
     public function endpoint($key, $fill = []): string
     {
         $fill['type'] = $this->type;
 
         if(Arr::has($this->payload, 'id')) {
-            $fill['id'] = $this->id;
+            $fill['id'] = $this->getFromPayload('id');
         }
 
         return str_replace(
             array_map(fn($key) => "{" . $key . "}", array_keys($fill)),
             array_values($fill),
-            $this->endpoints()[$key]
+            $this->endpoints[$key]
         );
     }
 
@@ -136,6 +147,11 @@ abstract class Model
     public function builder(): Builder
     {
         return app(Builder::class)->for($this);
+    }
+
+    public static function query(): Builder
+    {
+        return (new static())->builder();
     }
 
     public function getFromPayload($key, $default = null): mixed
@@ -180,7 +196,7 @@ abstract class Model
         };
     }
 
-    public function hasNamedScope($scope)
+    public function hasNamedScope($scope): bool
     {
         return method_exists($this, 'scope'.ucfirst($scope));
     }
@@ -208,8 +224,16 @@ abstract class Model
 
     public function __get($key)
     {
+        if($key === "definitions") {
+            return $this->builder()->definitions()->get();
+        }
+
         if (array_key_exists($key, $this->properties)) {
             return $this->getFromProperties($key);
+        }
+
+        if (array_key_exists($key, $this->payload)) {
+            return $this->getFromPayload($key);
         }
 
         if (HubSpot::isType($key)) {
@@ -220,17 +244,14 @@ abstract class Model
             return $this->getAssociations(Str::plural($key))->first();
         }
 
-        if($key === "definitions") {
-            return $this->builder()->definitions()->get();
-        }
-
-        if (array_key_exists($key, $this->payload)) {
-            return $this->getFromPayload($key);
-        }
+        return null;
     }
 
     public function __set($key, $value)
     {
+        if (HubSpot::isType($key) || HubSpot::isType(Str::plural($key))) {
+            return;
+        }
         $this->properties[$key] = $value;
     }
 
@@ -251,10 +272,5 @@ abstract class Model
         }
 
         return $this->forwardCallTo($this->builder(), $method, $parameters);
-    }
-
-    public static function query(): Builder
-    {
-        return app(Builder::class)->for(new static());
     }
 }

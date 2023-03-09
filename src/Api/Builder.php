@@ -352,7 +352,7 @@ class Builder
         )->json()['results'];
     }
 
-    public function definitions()
+    public function definitions(): PropertyDefinition
     {
         return new PropertyDefinition($this->object, $this);
     }

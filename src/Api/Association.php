@@ -53,12 +53,12 @@ class Association
 
     public function sourceBuilder(): Builder
     {
-        return app(Builder::class)->for($this->source);
+        return $this->source->builder();
     }
 
     public function builder(): Builder
     {
-        return app(Builder::class)->for($this->target);
+        return $this->target->builder();
     }
 
     public function __call($method, $parameters)
