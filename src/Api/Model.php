@@ -37,15 +37,17 @@ abstract class Model
     ];
 
     protected array $endpoints = [
-        "create"       => "/v3/objects/{type}",
-        "read"         => "/v3/objects/{type}/{id}",
-        "batchRead"    => "/v3/objects/{type}/batch/read",
-        "update"       => "/v3/objects/{type}/{id}",
-        "delete"       => "/v3/objects/{type}/{id}",
-        "search"       => "/v3/objects/{type}/search",
-        "associate"    => "/v3/objects/{type}/{id}/associations/{association}/{associationId}/{associationType}",
+        "create" => "/v3/objects/{type}",
+        "read" => "/v3/objects/{type}/{id}",
+        "batchRead" => "/v3/objects/{type}/batch/read",
+        "update" => "/v3/objects/{type}/{id}",
+        "delete" => "/v3/objects/{type}/{id}",
+        "search" => "/v3/objects/{type}/search",
+        "associate" => "/v3/objects/{type}/{id}/associations/{association}/{associationId}/{associationType}",
         "associations" => "/v3/objects/{type}/{id}/associations/{association}",
-        "properties"   => "/v3/properties/{type}",
+        "properties" => "/v3/properties/{type}",
+        "owner" => "/v3/owners/{id}",
+        "owners" => "/v3/owners",
     ];
 
     public function __construct(array $properties = [])

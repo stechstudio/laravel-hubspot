@@ -8,16 +8,16 @@ use STS\HubSpot\Api\Collection;
 use STS\HubSpot\Api\Model;
 use STS\HubSpot\Facades\HubSpot;
 
-class Property extends Model
+class Owner extends Model
 {
-    protected string $type = "properties";
+    protected string $type = "owners";
     protected $targetType = "contacts";
 
     protected array $schema = [
-        'email' => 'string',
-        'firstName' => 'string',
-        'lastName' => 'string',
-        'userId' => 'integer',
+        'name' => 'string',
+        'label' => 'string',
+        'type' => 'string',
+        'fieldType' => 'string',
         'description' => 'string',
         'groupName' => 'string',
         'options' => 'array',
@@ -44,22 +44,22 @@ class Property extends Model
     public function unserialize($value): mixed
     {
         return match ($this->payload['type']) {
-            'date'        => Carbon::parse($value),
-            'datetime'    => Carbon::parse($value),
-            'number'      => $value + 0,
+            'date' => Carbon::parse($value),
+            'datetime' => Carbon::parse($value),
+            'number' => $value + 0,
             'enumeration' => explode(";", $value),
-            default       => $value,
+            default => $value,
         };
     }
 
     public function serialize($value): mixed
     {
         return match ($this->payload['type']) {
-            'date'        => $value instanceof Carbon ? $value->toIso8601String() : $value,
-            'dateTime'    => $value instanceof Carbon ? $value->format('Y-m-d') : $value,
-            'number'      => $value + 0,
+            'date' => $value instanceof Carbon ? $value->toIso8601String() : $value,
+            'dateTime' => $value instanceof Carbon ? $value->format('Y-m-d') : $value,
+            'number' => $value + 0,
             'enumeration' => implode(';', $value),
-            default       => $value,
+            default => $value,
         };
     }
 }

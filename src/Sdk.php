@@ -33,7 +33,7 @@ class Sdk
         'emails' => Email::class,
         'meetings' => Meeting::class,
         'notes' => Note::class,
-        'tasks' => Task::class
+        'tasks' => Task::class,
     ];
 
     public function __construct()
