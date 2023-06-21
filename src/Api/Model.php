@@ -46,8 +46,6 @@ abstract class Model
         "associate" => "/v3/objects/{type}/{id}/associations/{association}/{associationId}/{associationType}",
         "associations" => "/v3/objects/{type}/{id}/associations/{association}",
         "properties" => "/v3/properties/{type}",
-        "owner" => "/v3/owners/{id}",
-        "owners" => "/v3/owners",
     ];
 
     public function __construct(array $properties = [])

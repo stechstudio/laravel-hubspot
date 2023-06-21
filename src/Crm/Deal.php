@@ -11,7 +11,6 @@ use STS\HubSpot\Api\Model;
  * @method Association contacts()
  * @method Association line_items()
  * @method Association quotes()
- * @method Association owners()
  * @property-read Company|null $company
  * @property-read Collection $companies
  * @property-read Contact|null $contact
@@ -20,8 +19,6 @@ use STS\HubSpot\Api\Model;
  * @property-read Collection $line_items
  * @property-read Quote|null $quote
  * @property-read Collection $quotes
- * @property-read Quote|null $owner
- * @property-read Collection $owners
  */
 class Deal extends Model
 {

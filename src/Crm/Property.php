@@ -14,10 +14,10 @@ class Property extends Model
     protected $targetType = "contacts";
 
     protected array $schema = [
-        'email' => 'string',
-        'firstName' => 'string',
-        'lastName' => 'string',
-        'userId' => 'integer',
+        'name' => 'string',
+        'label' => 'string',
+        'type' => 'string',
+        'fieldType' => 'string',
         'description' => 'string',
         'groupName' => 'string',
         'options' => 'array',
