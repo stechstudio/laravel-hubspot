@@ -12,11 +12,10 @@ class Owner extends Model
     protected string $type = "owners";
 
     protected array $schema = [
-        'name' => 'string',
-        'label' => 'string',
-        'type' => 'string',
-        'fieldType' => 'string',
-        'description' => 'string',
+        'email' => 'string',
+        'firstName' => 'string',
+        'lastName' => 'string',
+        'userId' => 'integer',
         'groupName' => 'string',
         'options' => 'array',
         'createdAt' => 'datetime',
