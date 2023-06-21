@@ -9,6 +9,7 @@ use Illuminate\Support\Traits\ForwardsCalls;
 use Illuminate\Support\Traits\Macroable;
 use STS\HubSpot\Api\Concerns\HasAssociations;
 use STS\HubSpot\Api\Concerns\HasPropertyDefinitions;
+use STS\HubSpot\Crm\Owner;
 use STS\HubSpot\Crm\Property;
 use STS\HubSpot\Facades\HubSpot;
 
@@ -166,7 +167,7 @@ abstract class Model
     {
         $value = Arr::get($this->properties, $key);
 
-        return !is_a($this, Property::class) && $this->definitions->has($key)
+        return !is_a($this, Owner::class) && !is_a($this, Property::class) && $this->definitions->has($key)
             ? $this->definitions->get($key)->unserialize($value)
             : $value;
     }
