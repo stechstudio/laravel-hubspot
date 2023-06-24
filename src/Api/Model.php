@@ -9,6 +9,7 @@ use Illuminate\Support\Traits\ForwardsCalls;
 use Illuminate\Support\Traits\Macroable;
 use STS\HubSpot\Api\Concerns\HasAssociations;
 use STS\HubSpot\Api\Concerns\HasPropertyDefinitions;
+use STS\HubSpot\Crm\Owner;
 use STS\HubSpot\Crm\Property;
 use STS\HubSpot\Facades\HubSpot;
 
@@ -37,15 +38,15 @@ abstract class Model
     ];
 
     protected array $endpoints = [
-        "create"       => "/v3/objects/{type}",
-        "read"         => "/v3/objects/{type}/{id}",
-        "batchRead"    => "/v3/objects/{type}/batch/read",
-        "update"       => "/v3/objects/{type}/{id}",
-        "delete"       => "/v3/objects/{type}/{id}",
-        "search"       => "/v3/objects/{type}/search",
-        "associate"    => "/v3/objects/{type}/{id}/associations/{association}/{associationId}/{associationType}",
+        "create" => "/v3/objects/{type}",
+        "read" => "/v3/objects/{type}/{id}",
+        "batchRead" => "/v3/objects/{type}/batch/read",
+        "update" => "/v3/objects/{type}/{id}",
+        "delete" => "/v3/objects/{type}/{id}",
+        "search" => "/v3/objects/{type}/search",
+        "associate" => "/v3/objects/{type}/{id}/associations/{association}/{associationId}/{associationType}",
         "associations" => "/v3/objects/{type}/{id}/associations/{association}",
-        "properties"   => "/v3/properties/{type}",
+        "properties" => "/v3/properties/{type}",
     ];
 
     public function __construct(array $properties = [])
@@ -166,7 +167,7 @@ abstract class Model
     {
         $value = Arr::get($this->properties, $key);
 
-        return !is_a($this, Property::class) && $this->definitions->has($key)
+        return !is_a($this, Owner::class) && !is_a($this, Property::class) && $this->definitions->has($key)
             ? $this->definitions->get($key)->unserialize($value)
             : $value;
     }

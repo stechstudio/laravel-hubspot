@@ -47,12 +47,20 @@ return [
     ],
 
     'emails' => [
-        'include_properties' => ['hubspot_owner_id','hs_timestamp','hs_email_subject','hs_email_status','hs_email_text','hs_email_direction'],
-        'include_associations' => ['companies','contacts','deals','tickets'],
+        'include_properties' => [
+            'hubspot_owner_id',
+            'hs_timestamp',
+            'hs_email_subject',
+            'hs_email_status',
+            'hs_email_text',
+            'hs_email_direction',
+        ],
+        'include_associations' => ['companies', 'contacts', 'deals', 'tickets'],
     ],
 
     'notes' => [
-        'include_properties' => ['hubspot_owner_id','hs_timestamp','hs_note_body'],
-        'include_associations' => ['companies','contacts','deals','tickets'],
-    ]
+        'include_properties' => ['hubspot_owner_id', 'hs_timestamp', 'hs_note_body'],
+        'include_associations' => ['companies', 'contacts', 'deals', 'tickets'],
+    ],
+
 ];

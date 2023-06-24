@@ -14,17 +14,17 @@ class Property extends Model
     protected $targetType = "contacts";
 
     protected array $schema = [
-        'name'        => 'string',
-        'label'       => 'string',
-        'type'        => 'string',
-        'fieldType'   => 'string',
+        'name' => 'string',
+        'label' => 'string',
+        'type' => 'string',
+        'fieldType' => 'string',
         'description' => 'string',
-        'groupName'   => 'string',
-        'options'     => 'array',
-        'createdAt'   => 'datetime',
-        'updatedAt'   => 'datetime',
-        'archived'    => 'bool',
-        'archivedAt'  => 'datetime',
+        'groupName' => 'string',
+        'options' => 'array',
+        'createdAt' => 'datetime',
+        'updatedAt' => 'datetime',
+        'archived' => 'bool',
+        'archivedAt' => 'datetime',
     ];
 
     public function scopeLoad(Builder $builder, $targetType)
