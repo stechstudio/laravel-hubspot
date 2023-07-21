@@ -41,6 +41,8 @@ HUBSPOT_ACCESS_TOKEN=XXX-XXX-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 You may retrieve single object records using the `find` method on any object class and providing the ID.
 
 ```php
+use STS\HubSpot\Crm\Contact;
+
 $contact = Contact::find(123);
 ```
 
