@@ -65,5 +65,6 @@ return [
 
     'http' => [
         'timeout' => env('HUBSPOT_HTTP_TIMEOUT', 10),
+        'connect_timeout' => env('HUBSPOT_HTTP_CONNECT_TIMEOUT', 10),
     ],
 ];
