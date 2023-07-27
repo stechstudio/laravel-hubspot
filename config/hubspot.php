@@ -63,4 +63,7 @@ return [
         'include_associations' => ['companies', 'contacts', 'deals', 'tickets'],
     ],
 
+    'http' => [
+        'timeout' => env('HUBSPOT_HTTP_TIMEOUT', 10),
+    ],
 ];
