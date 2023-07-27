@@ -31,7 +31,8 @@ class Client
 
     public function http(): PendingRequest
     {
-        return Http::withToken($this->accessToken)
+        return Http::timeout(config('hubspot.http.timeout', 10))
+            ->withToken($this->accessToken)
             ->throw(function (Response $response, RequestException $exception) {
                 if ($response->json('category') === 'RATE_LIMITS') {
                     throw new RateLimitException($response, $exception);
