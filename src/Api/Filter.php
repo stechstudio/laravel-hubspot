@@ -37,6 +37,14 @@ class Filter
             ];
         }
 
+        if ($this->operator === 'IN') {
+            return [
+                'propertyName' => $this->property,
+                'operator'     => $this->operator,
+                'values'       => $this->value,
+            ];
+        }
+
         return array_filter([
             'propertyName' => $this->property,
             'operator'     => $this->operator,
