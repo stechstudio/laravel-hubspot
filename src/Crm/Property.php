@@ -47,7 +47,7 @@ class Property extends Model
             'date'        => Carbon::parse($value),
             'datetime'    => Carbon::parse($value),
             'number'      => $value + 0,
-            'enumeration' => explode(";", $value),
+            'enumeration' => is_null($value) ? [] : explode(";", $value),
             default       => $value,
         };
     }
