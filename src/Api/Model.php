@@ -82,13 +82,19 @@ abstract class Model
 
         $properties = array_filter(
             $properties,
-            static fn (string $key): bool => !(HubSpot::isType($key) || HubSpot::isType(Str::plural($key))),
+            fn (string $key): bool => $this->isAllowedProperty($key),
             ARRAY_FILTER_USE_KEY
         );
 
         $this->properties = array_merge($this->properties, $properties);
 
         return $this;
+    }
+
+    private function isAllowedProperty(string $key): bool
+    {
+        return $key === 'email' || 
+               !(HubSpot::isType($key) || HubSpot::isType(Str::plural($key)));
     }
 
     public function type(): string
@@ -250,10 +256,9 @@ abstract class Model
 
     public function __set($key, $value)
     {
-        if (HubSpot::isType($key) || HubSpot::isType(Str::plural($key))) {
-            return;
+        if ($this->isAllowedProperty($key)) {
+            $this->properties[$key] = $value;
         }
-        $this->properties[$key] = $value;
     }
 
     public function __isset($key)

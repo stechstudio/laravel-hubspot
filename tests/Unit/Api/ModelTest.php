@@ -42,13 +42,20 @@ test('new model does not call fill when empty params', function () {
     $this->addToAssertionCount(1);
 });
 
-test('fill does not fill hubspot types', function (string $type) {
+test('fill does not fill hubspot types except email', function (string $type) {
     $baseData = ['test_name' => $this->getName()];
     $model = (new class extends AbstractApiModel {
     })->fill([$type => sha1(random_bytes(11)), ...$baseData]);
 
     $properties = new ReflectionProperty($model, 'properties');
-    expect($properties->getValue($model))->toBe($baseData);
+    if ($type === 'email') {
+        expect($properties->getValue($model))
+            ->toBeArray()
+            ->toHaveKey('email')
+            ->toHaveKey('test_name');
+    } else {
+        expect($properties->getValue($model))->toBe($baseData);
+    }
 })->with('SdkTypes-both');
 
 test('update calls fill & save', function () {
@@ -104,11 +111,16 @@ test('setting hubspot types on model does not set value', function (string $prop
 
     $model->$propName = $propValue;
 
-    expect($attributes->getValue($model))
-        ->toBeArray()
-        ->toBeEmpty();
-})
-    ->with('SdkTypes-both');
+    if ($propName === 'email') {
+        expect($attributes->getValue($model))
+            ->toBeArray()
+            ->toHaveKey('email', $propValue);
+    } else {
+        expect($attributes->getValue($model))
+            ->toBeArray()
+            ->toBeEmpty();
+    }
+})->with('SdkTypes-both');
 
 test('builder returns api builder', function () {
     $model = new class extends AbstractApiModel {
