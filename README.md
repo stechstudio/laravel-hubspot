@@ -12,7 +12,7 @@ Interact with HubSpot's CRM with an enjoyable, Eloquent-like developer experienc
 - Cursors provide a seamless way to loop through all records: `foreach(Contact::cursor() AS $contact) { ... }`
 
 > **Note**
-> Only the CRM API is currently implemented.  
+> Only the CRM API is currently implemented.
 
 ## Installation
 
@@ -24,7 +24,7 @@ composer require stechstudio/laravel-hubspot
 
 ### 2) Configure HubSpot
 
-[Create a private HubSpot app](https://developers.hubspot.com/docs/api/private-apps#create-a-private-app) and give it appropriate scopes for what you want to do with this SDK. 
+[Create a private HubSpot app](https://developers.hubspot.com/docs/api/private-apps#create-a-private-app) and give it appropriate scopes for what you want to do with this SDK.
 
 Copy the provided access token, and add to your Laravel `.env` file:
 
@@ -102,8 +102,8 @@ This package provides three different ways of fetching these results.
 
 #### Paginating
 
-Similar to a traditional database paginated result, you can paginate through a HubSpot collection of objects. 
-You will receive a `LengthAwarePaginator` just like with Eloquent, which means you can generate links in your UI just like you are used to. 
+Similar to a traditional database paginated result, you can paginate through a HubSpot collection of objects.
+You will receive a `LengthAwarePaginator` just like with Eloquent, which means you can generate links in your UI just like you are used to.
 
 ```php
 $contacts = Contact::paginate(20);
@@ -113,8 +113,8 @@ By default, this `paginate` method will look at the `page` query parameter. You 
 
 #### Cursor iteration
 
-You can use the `cursor` method to iterate over the entire collection of objects. 
-This uses [lazy collections](https://laravel.com/docs/9.x/collections#lazy-collections) and [generators](https://www.php.net/manual/en/language.generators.overview.php) 
+You can use the `cursor` method to iterate over the entire collection of objects.
+This uses [lazy collections](https://laravel.com/docs/9.x/collections#lazy-collections) and [generators](https://www.php.net/manual/en/language.generators.overview.php)
 to seamlessly fetch chunks of records from the API as needed, hydrating objects when needed, and providing smooth iteration over a limitless number of objects.
 
 ```php
@@ -129,7 +129,7 @@ foreach(Contact::cursor() AS $contact) {
 
 #### Manually fetching chunks
 
-Of course, you can grab collections of records with your own manual pagination or chunking logic. 
+Of course, you can grab collections of records with your own manual pagination or chunking logic.
 Use the `take` and `after` methods to specify what you want to grab, and then `get`.
 
 ```php
@@ -143,7 +143,7 @@ $contacts = Contact::get();
 ### Searching and filtering
 
 When retrieving multiple objects, you will frequently want to filter, search, and order these results.
-You can use a fluent interface to build up a query before retrieving the results. 
+You can use a fluent interface to build up a query before retrieving the results.
 
 #### Adding filters
 
@@ -185,7 +185,7 @@ Contact::search('1234')->get();
 
 #### Ordering
 
-You can order the results with any property. 
+You can order the results with any property.
 
 ```php
 Contact::orderBy('lastname')->get();
@@ -199,7 +199,7 @@ Contact::orderBy('days_to_close', 'desc')->get();
 
 ### Associations
 
-HubSpot associations are handled similar to Eloquent relationships. 
+HubSpot associations are handled similar to Eloquent relationships.
 
 #### Dynamic properties
 
@@ -230,7 +230,7 @@ Normally, there are three HubSpot API calls to achieve the above result:
 2. Retrieve all the contact IDs that are associated to this company
 3. Query for contacts that match the IDs
 
-Now we can eliminate the second API call by eager loading the associated contact IDs. 
+Now we can eliminate the second API call by eager loading the associated contact IDs.
 This library always eager-loads the IDs for associated companies, contacts, deals, and tickets. It does not eager-load
 IDs for engagements like emails and notes, since those association will tend to be much longer lists.
 
@@ -258,7 +258,13 @@ This will create a new contact, associate it to the company, and return the new 
 You can also associate existing objects using `attach`. This method accepts and ID or an object instance.
 
 ```php
-Company::find(555)->attach(Contact::find(123));
+Company::find(555)->contacts()->attach(Contact::find(123));
+```
+
+You can also detach existing objects using `detach`. This method accepts and ID or an object instance.
+
+```php
+Company::find(555)->contacts()->detach(Contact::find(123));
 ```
 
 
