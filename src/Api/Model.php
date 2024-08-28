@@ -93,7 +93,7 @@ abstract class Model
 
     private function isAllowedProperty(string $key): bool
     {
-        return $key === 'email' || 
+        return $key === 'email' ||
                !(HubSpot::isType($key) || HubSpot::isType(Str::plural($key)));
     }
 

@@ -51,6 +51,17 @@ class Association
         );
     }
 
+    public function detach($targetId)
+    {
+        if ($targetId instanceof Model) {
+            $targetId = $targetId->id;
+        }
+
+        $this->sourceBuilder()->deleteAssociation(
+            $this->target, $targetId
+        );
+    }
+
     public function sourceBuilder(): Builder
     {
         return $this->source->builder();

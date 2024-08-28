@@ -340,6 +340,17 @@ class Builder
         )->json();
     }
 
+    public function deleteAssociation(Model $target, $targetId)
+    {
+        return $this->client()->delete(
+            $this->object->endpoint('associate', [
+                'association' => $target->type(),
+                'associationId' => $targetId,
+                'associationType' => Str::singular($this->object->type()) . "_to_" . Str::singular($target->type())
+            ])
+        )->json();
+    }
+
     public function client(): Client
     {
         return $this->client;
