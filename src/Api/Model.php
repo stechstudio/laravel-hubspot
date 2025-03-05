@@ -49,6 +49,11 @@ abstract class Model
         "properties" => "/v3/properties/{type}",
     ];
 
+    protected array $allowedproperties = [
+        'email',
+        'company'
+    ];
+
     public function __construct(array $properties = [])
     {
         if (empty($properties)) {
@@ -93,7 +98,7 @@ abstract class Model
 
     private function isAllowedProperty(string $key): bool
     {
-        return $key === 'email' ||
+        return in_array($key, $this->allowedproperties) ||
                !(HubSpot::isType($key) || HubSpot::isType(Str::plural($key)));
     }
 
@@ -106,7 +111,7 @@ abstract class Model
     {
         $fill['type'] = $this->type;
 
-        if(Arr::has($this->payload, 'id')) {
+        if (Arr::has($this->payload, 'id')) {
             $fill['id'] = $this->getFromPayload('id');
         }
 
@@ -231,7 +236,7 @@ abstract class Model
 
     public function __get($key)
     {
-        if($key === "definitions") {
+        if ($key === "definitions") {
             return $this->builder()->definitions()->get();
         }
 
