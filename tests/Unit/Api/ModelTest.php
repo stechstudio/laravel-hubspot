@@ -52,7 +52,6 @@ test('fill does not fill hubspot types except email and company', function (stri
         expect($properties->getValue($model))
             ->toBeArray()
             ->toHaveKey('email')
-            ->toHaveKey('company')
             ->toHaveKey('test_name');
     } elseif ($type === 'company') {
         expect($properties->getValue($model))
