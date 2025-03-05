@@ -42,7 +42,7 @@ test('new model does not call fill when empty params', function () {
     $this->addToAssertionCount(1);
 });
 
-test('fill does not fill hubspot types except email', function (string $type) {
+test('fill does not fill hubspot types except email and company', function (string $type) {
     $baseData = ['test_name' => $this->getName()];
     $model = (new class extends AbstractApiModel {
     })->fill([$type => sha1(random_bytes(11)), ...$baseData]);
@@ -52,6 +52,12 @@ test('fill does not fill hubspot types except email', function (string $type) {
         expect($properties->getValue($model))
             ->toBeArray()
             ->toHaveKey('email')
+            ->toHaveKey('company')
+            ->toHaveKey('test_name');
+    } elseif ($type === 'company') {
+        expect($properties->getValue($model))
+            ->toBeArray()
+            ->toHaveKey('company')
             ->toHaveKey('test_name');
     } else {
         expect($properties->getValue($model))->toBe($baseData);
@@ -115,6 +121,10 @@ test('setting hubspot types on model does not set value', function (string $prop
         expect($attributes->getValue($model))
             ->toBeArray()
             ->toHaveKey('email', $propValue);
+    } elseif ($propName === 'company') {
+        expect($attributes->getValue($model))
+            ->toBeArray()
+            ->toHaveKey('company', $propValue);
     } else {
         expect($attributes->getValue($model))
             ->toBeArray()
