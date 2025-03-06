@@ -3,14 +3,15 @@
 namespace STS\HubSpot\Api;
 
 use Illuminate\Support\Arr;
+use STS\HubSpot\Api\Interfaces\ModelInterface;
 
-class Collection extends \Illuminate\Support\Collection
+class Collection extends \Illuminate\Support\Collection implements ModelInterface
 {
     protected array $response = [];
     protected int $total = 0;
     protected $after;
 
-    public static function hydrate(array $response, string $className): self
+    public static function hydrate(array $response, string $className): static
     {
         $instance = new static($response['results']);
         $instance = $instance->map(fn($payload) => $className::hydrate($payload));
