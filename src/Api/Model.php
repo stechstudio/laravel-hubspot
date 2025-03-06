@@ -16,6 +16,8 @@ use STS\HubSpot\Facades\HubSpot;
 
 /**
  * @property-read Collection $definitions
+ * @property-read int $id
+ * @method array properties()
  */
 abstract class Model implements ModelInterface
 {
