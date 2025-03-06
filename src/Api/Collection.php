@@ -10,7 +10,7 @@ class Collection extends \Illuminate\Support\Collection
     protected int $total = 0;
     protected $after;
 
-    public static function hydrate(array $response, string $className): static
+    public static function hydrate(array $response, string $className): self
     {
         $instance = new static($response['results']);
         $instance = $instance->map(fn($payload) => $className::hydrate($payload));
