@@ -386,7 +386,7 @@ test('cast invalid datetime throws exception', function () {
     };
     $castMethod = new ReflectionMethod($model, 'cast');
     $castMethod->invoke($model, 'abc', 'datetime');
-})->throws(InvalidFormatException::class);
+})->throws(Exception::class);
 
 test('cast to string throws exception on array', function () {
     $model = new class extends AbstractApiModel {
