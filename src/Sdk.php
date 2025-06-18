@@ -10,11 +10,13 @@ use STS\HubSpot\Crm\Contact;
 use STS\HubSpot\Crm\Deal;
 use STS\HubSpot\Crm\Email;
 use STS\HubSpot\Crm\FeedbackSubmissions;
+use STS\HubSpot\Crm\Invoice;
 use STS\HubSpot\Crm\LineItems;
 use STS\HubSpot\Crm\Meeting;
 use STS\HubSpot\Crm\Note;
 use STS\HubSpot\Crm\Product;
 use STS\HubSpot\Crm\Quote;
+use STS\HubSpot\Crm\Subscription;
 use STS\HubSpot\Crm\Task;
 use STS\HubSpot\Crm\Ticket;
 
@@ -34,6 +36,8 @@ class Sdk
         'meetings' => Meeting::class,
         'notes' => Note::class,
         'tasks' => Task::class,
+        'invoices' => Invoice::class,
+        'subscriptions' => Subscription::class,
     ];
 
     public function __construct()
