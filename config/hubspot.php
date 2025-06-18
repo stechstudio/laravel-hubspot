@@ -41,6 +41,16 @@ return [
         'include_associations' => ['companies','contacts','deals','tickets'],
     ],
 
+    'invoices' => [
+        'include_properties' => [],
+        'include_associations' => ['companies','contacts','quotes'],
+    ],
+
+    'subscriptions' => [
+        'include_properties' => [],
+        'include_associations' => ['companies','contacts','quotes'],
+    ],
+
     'calls' => [
         'include_properties' => ['hs_call_title','hubspot_owner_id','hs_call_body','hs_call_direction','hs_call_callee_object_id','hs_call_callee_object_type_id','hs_call_disposition','hs_call_duration','hs_call_from_number','hs_call_to_number'],
         'include_associations' => ['companies','contacts','deals','tickets'],
