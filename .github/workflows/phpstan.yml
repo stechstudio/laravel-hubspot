@@ -1,0 +1,29 @@
+name: PHPStan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  phpstan:
+    name: phpstan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - uses: "ramsey/composer-install@v2"
+
+      - name: Install composer dependencies (need autoloader built)
+        run: |
+          composer install --no-scripts
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan --error-format=github

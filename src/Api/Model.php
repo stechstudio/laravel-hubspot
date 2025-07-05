@@ -9,14 +9,17 @@ use Illuminate\Support\Traits\ForwardsCalls;
 use Illuminate\Support\Traits\Macroable;
 use STS\HubSpot\Api\Concerns\HasAssociations;
 use STS\HubSpot\Api\Concerns\HasPropertyDefinitions;
+use STS\HubSpot\Api\Interfaces\ModelInterface;
 use STS\HubSpot\Crm\Owner;
 use STS\HubSpot\Crm\Property;
 use STS\HubSpot\Facades\HubSpot;
 
 /**
  * @property-read Collection $definitions
+ * @property-read int $id
+ * @method array properties()
  */
-abstract class Model
+abstract class Model implements ModelInterface
 {
     use ForwardsCalls, Macroable, HasAssociations, HasPropertyDefinitions;
 
@@ -62,7 +65,7 @@ abstract class Model
         $this->fill($properties);
     }
 
-    public static function hydrate(array $payload = []): static
+    public static function hydrate(array $payload = []): self
     {
         $instance = new static;
         $instance->init($payload);
