@@ -37,7 +37,7 @@ class Filter
             ];
         }
 
-        if ($this->operator === 'IN') {
+        if ($this->operator === 'IN' || $this->operator === 'NOT_IN') {
             return [
                 'propertyName' => $this->property,
                 'operator'     => $this->operator,
