@@ -3,8 +3,9 @@
 namespace STS\HubSpot\Api;
 
 use Illuminate\Support\Arr;
+use STS\HubSpot\Api\Interfaces\ModelInterface;
 
-class Collection extends \Illuminate\Support\Collection
+class Collection extends \Illuminate\Support\Collection implements ModelInterface
 {
     protected array $response = [];
     protected int $total = 0;
