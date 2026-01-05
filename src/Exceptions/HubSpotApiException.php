@@ -8,7 +8,7 @@ use Illuminate\Http\Client\Response;
 
 class HubSpotApiException extends HttpClientException
 {
-    public $response;
+    public Response $response;
 
     public function __construct(Response $response, RequestException $previous)
     {

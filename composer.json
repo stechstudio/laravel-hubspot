@@ -22,11 +22,11 @@
         "spatie/laravel-package-tools": "^1.14.0"
     },
     "require-dev": {
+        "larastan/larastan": "^2.4.1",
         "laravel/pint": "^1.5",
         "nunomaduro/collision": "^6.4",
-        "larastan/larastan": "^2.4.1",
         "orchestra/testbench": "^7.22",
-        "pestphp/pest": "^1.22",
+        "pestphp/pest": "*",
         "pestphp/pest-plugin-laravel": "^1.1",
         "pestphp/pest-plugin-parallel": "^1.2",
         "phpstan/extension-installer": "^1.1",
