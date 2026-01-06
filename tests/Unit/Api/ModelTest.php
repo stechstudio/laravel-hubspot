@@ -43,7 +43,7 @@ test('new model does not call fill when empty params', function () {
 });
 
 test('fill does not fill hubspot types except email and company', function (string $type) {
-    $baseData = ['test_name' => $this->getName()];
+    $baseData = ['test_name' => 'test_fill_' . sha1(random_bytes(11))];
     $model = (new class extends AbstractApiModel {
     })->fill([$type => sha1(random_bytes(11)), ...$baseData]);
 
@@ -194,7 +194,7 @@ test('magic get value on model calls getFromProperties when property set', funct
 
 test('magic get value on model calls getAssociations when HubSpot::isType', function (string $type) {
     $this->builder->method('for')->willReturnSelf();
-    $testReturn = new Collection(['test' => $this->getName(), 'type' => $type]);
+    $testReturn = new Collection(['test' => 'test_assoc_' . sha1(random_bytes(11)), 'type' => $type]);
 
     $model = (new class extends AbstractApiModel {
         private string $expectedType;
@@ -219,7 +219,7 @@ test('magic get value on model calls getAssociations when HubSpot::isType', func
 })->with('SdkTypes');
 test('magic get value on model calls getAssociations when HubSpot::isType singular', function (string $singularType) {
     $this->builder->method('for')->willReturnSelf();
-    $testReturn = new Collection(['test' => $this->getName(), 'type' => $singularType]);
+    $testReturn = new Collection(['test' => 'test_singular_' . sha1(random_bytes(11)), 'type' => $singularType]);
     $model = (new class extends AbstractApiModel {
         private string $expectedType;
         private Collection $testReturn;
@@ -266,6 +266,7 @@ test('magic get definitions on model calls builder for values', function () {
 test('magic get gets payload if exists', function () {
     $this->builder->method('for')->willReturnSelf();
     $propName = sha1(random_bytes(11));
+    $propValue = 'test_payload_' . sha1(random_bytes(11));
 
     $model = (new class extends AbstractApiModel {
         private string $expectedKey;
@@ -283,11 +284,11 @@ test('magic get gets payload if exists', function () {
             Assert::assertNull($default);
             return parent::getFromPayload($key, $default);
         }
-    })->setTestExpectations($propName, $this->getName());
+    })->setTestExpectations($propName, $propValue);
 
     expect($model->__get($propName))
         ->toBeString()
-        ->toBe($this->getName());
+        ->toBe($propValue);
 });
 
 test('magic get returns null if nothing found', function () {
@@ -315,7 +316,7 @@ test('hasNamedScope returns correct value', function () {
 
     expect($model->hasNamedScope('test'))
         ->toBeTrue()
-        ->and($model->hasNamedScope($this->getName()))
+        ->and($model->hasNamedScope('nonExistentScope'))
         ->toBeFalse();
 });
 
@@ -324,7 +325,7 @@ test('toArray returns payload', function () {
     };
 
     $payload = [
-        'test' => $this->getName(),
+        'test' => 'test_toArray_' . sha1(random_bytes(11)),
         'rng' => sha1(random_bytes(11)),
     ];
 
@@ -628,7 +629,7 @@ test('hydrate calls init on new instance', function () {
             return $this;
         }
     };
-    $model::$expectedPayload = ['test' => $this->getName(), 'when' => now()->toDateTimeString()];
+    $model::$expectedPayload = ['test' => 'test_hydrate_' . sha1(random_bytes(11)), 'when' => now()->toDateTimeString()];
 
     $secondModel = $model::hydrate($model::$expectedPayload);
     $this->assertInstanceOf(AbstractApiModel::class, $secondModel);
@@ -648,7 +649,7 @@ test('init calls fill, set exists and sets payload', function () {
     $model::$expectedPayload = [
         'id' => random_int(100, 999),
         'properties' => [
-            'test' => $this->getName(),
+            'test' => 'test_init_' . sha1(random_bytes(11)),
             'when' => now()->toDateTimeString()
         ]
     ];
@@ -677,7 +678,7 @@ test('expand calls through as expected', function () {
     $model::$expectedPayload = [
         'id' => random_int(100, 999),
         'properties' => [
-            'test' => $this->getName(),
+            'test' => 'test_expand_' . sha1(random_bytes(11)),
             'when' => now()->toDateTimeString()
         ]
     ];
@@ -712,7 +713,7 @@ test('create calls hydrate with builder create properties', function () {
         }
     };
     $properties = [
-        'test' => $this->getName(),
+        'test' => 'test_create_' . sha1(random_bytes(11)),
         'when' => now()->toDateTimeString()
     ];
     $model::$expectedPayload = [
@@ -741,7 +742,7 @@ test('save when exists is true', function () {
     };
 
     $properties = [
-        'test' => $this->getName(),
+        'test' => 'test_save_exists_' . sha1(random_bytes(11)),
         'when' => now()->toDateTimeString()
     ];
     $model::$expectedPayload = [
@@ -772,7 +773,7 @@ test('save when exists is false', function () {
     };
 
     $properties = [
-        'test' => $this->getName(),
+        'test' => 'test_save_not_exists_' . sha1(random_bytes(11)),
         'when' => now()->toDateTimeString()
     ];
     $model::$expectedPayload = [
