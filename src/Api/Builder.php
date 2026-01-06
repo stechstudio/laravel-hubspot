@@ -186,7 +186,7 @@ class Builder
         return new $this->objectClass();
     }
 
-    public function findOr($id, $idProperty = null, Closure $callback = null)
+    public function findOr($id, $idProperty = null, ?Closure $callback = null)
     {
         if ($idProperty instanceof Closure) {
             $callback = $idProperty;

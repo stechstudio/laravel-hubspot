@@ -25,14 +25,14 @@ test('builder returns builder from targetModel', function () {
 });
 
 test('get doesnt call load when collection set', function () {
-    $testCollection = new Collection(['test' => $this->getName()]);
+    $testCollection = new Collection(['test' => 'test_get_no_load_' . sha1(random_bytes(11))]);
     $this->targetModel->expects($this->never())->method('builder');
     (new ReflectionProperty($this->association, 'collection'))->setValue($this->association, $testCollection);
     $this->assertSame($testCollection, $this->association->get());
 });
 
 test('load calls target builders findMany and returns collection', function () {
-    $testCollection = new Collection(['test' => $this->getName()]);
+    $testCollection = new Collection(['test' => 'test_load_' . sha1(random_bytes(11))]);
     $ids = [123, 345, 567];
     $this->targetModel->method('builder')->willReturn($this->builder);
     $this->builder->expects($this->once())->method('findMany')->with($ids)->willReturn($testCollection);
@@ -43,7 +43,7 @@ test('load calls target builders findMany and returns collection', function () {
 
 test('get calls load when collection isnt set', function () {
     $ids = [123, 345, 567];
-    $testCollection = new Collection(['test' => $this->getName()]);
+    $testCollection = new Collection(['test' => 'test_get_load_' . sha1(random_bytes(11))]);
     (new ReflectionProperty($this->association, 'ids'))->setValue($this->association, $ids);
     $this->targetModel->method('builder')->willReturn($this->builder);
     $this->builder->expects($this->once())->method('findMany')->with($ids)->willReturn($testCollection);
