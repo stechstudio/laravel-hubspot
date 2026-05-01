@@ -46,7 +46,7 @@ test('new model does not call fill when empty params', function () {
 });
 
 test('fill does not fill hubspot types', function (string $type) {
-    $baseData = ['test_name' => $this->getName()];
+    $baseData = ['test_name' => $this->name()];
     $model = (new class extends AbstractApiModel
     {
     })->fill([$type => sha1(random_bytes(11)), ...$baseData]);
@@ -187,7 +187,7 @@ test('magic get value on model calls getFromProperties when property set', funct
 
 test('magic get value on model calls getAssociations when HubSpot::isType', function (string $type) {
     $this->builder->method('for')->willReturnSelf();
-    $testReturn = new Collection(['test' => $this->getName(), 'type' => $type]);
+    $testReturn = new Collection(['test' => $this->name(), 'type' => $type]);
 
     $model = (new class extends AbstractApiModel
     {
@@ -216,7 +216,7 @@ test('magic get value on model calls getAssociations when HubSpot::isType', func
 })->with('SdkTypes');
 test('magic get value on model calls getAssociations when HubSpot::isType singular', function (string $singularType) {
     $this->builder->method('for')->willReturnSelf();
-    $testReturn = new Collection(['test' => $this->getName(), 'type' => $singularType]);
+    $testReturn = new Collection(['test' => $this->name(), 'type' => $singularType]);
     $model = (new class extends AbstractApiModel
     {
         private string $expectedType;
@@ -288,11 +288,11 @@ test('magic get gets payload if exists', function () {
 
             return parent::getFromPayload($key, $default);
         }
-    })->setTestExpectations($propName, $this->getName());
+    })->setTestExpectations($propName, $this->name());
 
     expect($model->__get($propName))
         ->toBeString()
-        ->toBe($this->getName());
+        ->toBe($this->name());
 });
 
 test('magic get returns null if nothing found', function () {
@@ -323,7 +323,7 @@ test('hasNamedScope returns correct value', function () {
 
     expect($model->hasNamedScope('test'))
         ->toBeTrue()
-        ->and($model->hasNamedScope($this->getName()))
+        ->and($model->hasNamedScope($this->name()))
         ->toBeFalse();
 });
 
@@ -333,7 +333,7 @@ test('toArray returns payload', function () {
     };
 
     $payload = [
-        'test' => $this->getName(),
+        'test' => $this->name(),
         'rng' => sha1(random_bytes(11)),
     ];
 
@@ -664,7 +664,7 @@ test('hydrate calls init on new instance', function () {
             return $this;
         }
     };
-    $model::$expectedPayload = ['test' => $this->getName(), 'when' => now()->toDateTimeString()];
+    $model::$expectedPayload = ['test' => $this->name(), 'when' => now()->toDateTimeString()];
 
     $secondModel = $model::hydrate($model::$expectedPayload);
     $this->assertInstanceOf(AbstractApiModel::class, $secondModel);
@@ -686,7 +686,7 @@ test('init calls fill, set exists and sets payload', function () {
     $model::$expectedPayload = [
         'id' => random_int(100, 999),
         'properties' => [
-            'test' => $this->getName(),
+            'test' => $this->name(),
             'when' => now()->toDateTimeString(),
         ],
     ];
@@ -717,7 +717,7 @@ test('expand calls through as expected', function () {
     $model::$expectedPayload = [
         'id' => random_int(100, 999),
         'properties' => [
-            'test' => $this->getName(),
+            'test' => $this->name(),
             'when' => now()->toDateTimeString(),
         ],
     ];
@@ -754,7 +754,7 @@ test('create calls hydrate with builder create properties', function () {
         }
     };
     $properties = [
-        'test' => $this->getName(),
+        'test' => $this->name(),
         'when' => now()->toDateTimeString(),
     ];
     $model::$expectedPayload = [
@@ -768,35 +768,44 @@ test('create calls hydrate with builder create properties', function () {
     $model::create($properties);
 });
 
-test('save when exists is true', function () {
+test('save when exists is true and no dirty properties skips update', function () {
+    $model = new class extends AbstractApiModel
+    {
+        public bool $exists = true;
+    };
+
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder->expects($this->never())->method('update');
+    $this->builder->expects($this->never())->method('create');
+
+    $result = $model->save();
+
+    expect($result)->toBe($model);
+});
+
+test('save when exists is true and has dirty properties calls update', function () {
+    $dirtyProperties = [
+        'test' => $this->name(),
+        'when' => now()->toDateTimeString(),
+    ];
+
     $model = new class extends AbstractApiModel
     {
         public bool $exists = true;
 
         public static array $expectedPayload = [];
-
-        public function fill(array $properties): static
-        {
-            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1];
-            Assert::assertSame('save', $trace['function']);
-            Assert::assertSame(AbstractApiModel::class, $trace['class']);
-
-            return parent::fill($properties);
-        }
     };
 
-    $properties = [
-        'test' => $this->getName(),
-        'when' => now()->toDateTimeString(),
-    ];
     $model::$expectedPayload = [
         'id' => random_int(100, 999),
-        'properties' => $properties,
+        'properties' => $dirtyProperties,
     ];
 
+    $model->fill($dirtyProperties);
+
     $this->builder->method('for')->willReturnSelf();
-    $this->builder->expects($this->once())->method('update')->with([])->willReturn($model::$expectedPayload);
-    $this->builder->expects($this->never())->method('create')->withAnyParameters();
+    $this->builder->expects($this->once())->method('update')->with($dirtyProperties)->willReturn($model::$expectedPayload);
+    $this->builder->expects($this->never())->method('create');
 
     $model->save();
 });
@@ -819,7 +828,7 @@ test('save when exists is false', function () {
     };
 
     $properties = [
-        'test' => $this->getName(),
+        'test' => $this->name(),
         'when' => now()->toDateTimeString(),
     ];
     $model::$expectedPayload = [
