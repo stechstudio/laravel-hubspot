@@ -121,7 +121,7 @@ class Builder
     {
         return $this->client()->post(
             $this->object->endpoint('create'),
-            ['properties' => $properties]
+            ['properties' => (object) $properties]
         )->json();
     }
 
@@ -212,7 +212,7 @@ class Builder
     {
         return $this->client()->patch(
             $this->object->endpoint('update'),
-            ['properties' => $properties]
+            ['properties' => (object) $properties]
         )->json();
     }
 
