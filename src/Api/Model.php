@@ -200,7 +200,7 @@ abstract class Model implements ModelInterface
         $original = Arr::get($this->payload, 'properties', []);
 
         foreach ($this->properties as $key => $value) {
-            if (! array_key_exists($key, $original) || $original[$key] !== $value) {
+            if (! array_key_exists($key, $original) || (string) $original[$key] !== (string) $value) {
                 $dirty[$key] = $value;
             }
         }

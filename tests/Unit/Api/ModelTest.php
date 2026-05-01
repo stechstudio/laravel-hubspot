@@ -618,6 +618,30 @@ test('getDirty returns properties changed from payload', function () {
     $this->assertSame(['test' => 321], $model->getDirty());
 });
 
+test('getDirty does not flag int that string-equals payload value', function () {
+    $model = new class extends AbstractApiModel {
+        protected array $payload = ['properties' => ['dealstage' => '12967608']];
+        protected array $properties = ['dealstage' => 12967608];
+    };
+    $this->assertSame([], $model->getDirty());
+});
+
+test('getDirty does not flag string that equals stringified int payload value', function () {
+    $model = new class extends AbstractApiModel {
+        protected array $payload = ['properties' => ['amount' => 500]];
+        protected array $properties = ['amount' => '500'];
+    };
+    $this->assertSame([], $model->getDirty());
+});
+
+test('getDirty flags genuine value changes regardless of type', function () {
+    $model = new class extends AbstractApiModel {
+        protected array $payload = ['properties' => ['dealstage' => '12967608']];
+        protected array $properties = ['dealstage' => 99999999];
+    };
+    $this->assertSame(['dealstage' => 99999999], $model->getDirty());
+});
+
 test('hydrate calls init on new instance', function () {
     $model = new class extends AbstractApiModel {
 
