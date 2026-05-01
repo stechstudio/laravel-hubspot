@@ -727,7 +727,12 @@ test('create calls hydrate with builder create properties', function () {
     $model::create($properties);
 });
 
-test('save when exists is true', function () {
+test('save when exists is true and has dirty properties calls update', function () {
+    $dirtyProperties = [
+        'test' => 'test_save_exists_' . sha1(random_bytes(11)),
+        'when' => now()->toDateTimeString()
+    ];
+
     $model = new class extends AbstractApiModel {
         public bool $exists = true;
         public static array $expectedPayload = [];
@@ -741,20 +746,55 @@ test('save when exists is true', function () {
         }
     };
 
-    $properties = [
-        'test' => 'test_save_exists_' . sha1(random_bytes(11)),
-        'when' => now()->toDateTimeString()
-    ];
+    $propertiesProp = new ReflectionProperty($model, 'properties');
+    $propertiesProp->setValue($model, $dirtyProperties);
+
     $model::$expectedPayload = [
         'id' => random_int(100, 999),
-        'properties' => $properties
+        'properties' => $dirtyProperties
     ];
 
     $this->builder->method('for')->willReturnSelf();
-    $this->builder->expects($this->once())->method('update')->with([])->willReturn($model::$expectedPayload);
+    $this->builder
+        ->expects($this->once())
+        ->method('update')
+        ->with($dirtyProperties)
+        ->willReturn($model::$expectedPayload);
     $this->builder->expects($this->never())->method('create')->withAnyParameters();
 
     $model->save();
+});
+
+test('save when exists is true and no dirty properties skips update', function () {
+    $model = new class extends AbstractApiModel {
+        public bool $exists = true;
+    };
+
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder->expects($this->never())->method('update')->withAnyParameters();
+    $this->builder->expects($this->never())->method('create')->withAnyParameters();
+
+    expect($model->save())->toBe($model);
+});
+
+test('save when exists is true and properties match payload skips update', function () {
+    $properties = [
+        'test' => 'test_save_clean_' . sha1(random_bytes(11)),
+        'when' => now()->toDateTimeString()
+    ];
+
+    $model = new class extends AbstractApiModel {
+        public bool $exists = true;
+    };
+
+    (new ReflectionProperty($model, 'properties'))->setValue($model, $properties);
+    (new ReflectionProperty($model, 'payload'))->setValue($model, ['properties' => $properties]);
+
+    $this->builder->method('for')->willReturnSelf();
+    $this->builder->expects($this->never())->method('update')->withAnyParameters();
+    $this->builder->expects($this->never())->method('create')->withAnyParameters();
+
+    expect($model->save())->toBe($model);
 });
 
 test('save when exists is false', function () {
